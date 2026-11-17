@@ -42,7 +42,6 @@ var characters: Dictionary = {
 		"bubble_rect": Rect2(340, 20, 560, 205),
 		"cloud_text_color": Color(0.17, 0.04, 0.08),
 		"choices_rect": Rect2(660, 450, 450, 200),  # smaller, clear of the kid
-		"choices_opacity": 0.9,
 		"dialogue": {
 			"start": {
 				"text": "*A foolish boy dares to ask him for a scrap of bread. Little does he know what hides behind that noble face...*",
@@ -124,7 +123,10 @@ var characters: Dictionary = {
 		"start_node": "start",
 		"start_scene": "res://assets/witch_room.png",
 		"start_layers": ["res://assets/witch_start.png"],
-		"bubble_rect": Rect2(300, 20, 500, 190),
+		"bubble_texture": "res://assets/witch_bubble.png",
+		"bubble_region": Rect2(0, 0, 915, 322),
+		"cloud_text_color": Color(0.96, 0.97, 0.94),
+		"bubble_rect": Rect2(335, 20, 420, 190),
 		"choices_rect": Rect2(640, 440, 400, 250),
 		"dialogue": {
 			"start": {
@@ -232,6 +234,9 @@ var characters: Dictionary = {
 		"start_node": "start",
 		"start_scene": "res://assets/vampire_room.png",
 		"start_layers": ["res://assets/vampire_prisoner.png"],
+		"bubble_texture": "res://assets/vampire_bubble.png",
+		"bubble_region": Rect2(0, 0, 987, 348),
+		"cloud_text_color": Color(0.96, 0.95, 0.98),
 		"bubble_rect": Rect2(270, 20, 480, 190),
 		"choices_rect": Rect2(770, 40, 360, 270),
 		"dialogue": {
@@ -546,3 +551,14 @@ func get_character(character_id: String) -> Dictionary:
 func is_intro_scene() -> bool:
 	var scene := get_tree().current_scene
 	return scene != null and scene.scene_file_path in [MENU_SCENE, UNICORN_MONOLOGUE_SCENE]
+
+
+## True once every character has been spoken to and every stat ended below 50.
+func is_town_collapsed() -> bool:
+	for character_id in CHARACTER_ORDER:
+		if not is_conversation_completed(character_id):
+			return false
+	for stat_id in stats:
+		if stats[stat_id] >= 50:
+			return false
+	return true

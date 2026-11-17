@@ -13,7 +13,10 @@ const TEXT_TOP: float = 30.0
 const BUBBLE_TAIL_SPACE: float = 50.0
 const CHOICES_PADDING: float = 90.0
 const MIN_CLOUD_HEIGHT: float = 100.0
-const CLOUD_OPACITY: float = 0.88
+const BUBBLE_FONT_SIZE: int = 24
+const OUTCOME_FONT_SIZE: int = 28
+const CHOICE_FONT_SIZE: int = 13
+const CLOUD_OPACITY: float = 0.6
 const CLOUD_TEXT_COLOR: Color = Color(0.2, 0.05, 0.18)
 const CHOICE_ALPHA: Dictionary = {"normal": 0.3, "hover": 0.55, "pressed": 0.7, "focus": 0.3}
 const STORY_FONT: Font = preload("res://assets/fonts/GrandMalon-Regular.ttf")
@@ -82,7 +85,7 @@ func _build_ui(data: Dictionary) -> void:
 	add_child(_unicorn)
 
 	# Choices live in their own mirrored cloud beside the unicorn, its tail pointing at him.
-	_choices_bubble = _make_cloud(cloud_tex, data.get("choices_rect", CHOICES_RECT), data.get("choices_opacity", CLOUD_OPACITY), true)
+	_choices_bubble = _make_cloud(cloud_tex, data.get("choices_rect", CHOICES_RECT), CLOUD_OPACITY, true)
 	_choices_bottom = _choices_bubble.position.y + _choices_bubble.size.y
 	_choices_box = _make_choices_box()
 	_choices_bubble.add_child(_choices_box)
@@ -167,7 +170,7 @@ func _build_outcome_panel(text_on_top: bool) -> void:
 	_outcome_label.scroll_active = false
 	_outcome_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_outcome_label.add_theme_font_override("normal_font", STORY_FONT)
-	_outcome_label.add_theme_font_size_override("normal_font_size", 28)
+	_outcome_label.add_theme_font_size_override("normal_font_size", OUTCOME_FONT_SIZE)
 	_outcome_label.add_theme_color_override("default_color", Color(0.98, 0.93, 0.85))
 	_outcome_panel.add_child(_outcome_label)
 
@@ -205,22 +208,11 @@ func show_dialogue_node(node_key: String) -> void:
 	_bubble_text.visible_ratio = 0.0
 	_bubble_text.offset_bottom = TEXT_TOP + TEXT_AREA_HEIGHT
 	_rebuild_choices()
-	await _fit_text(_bubble_text, 24)
+	await TextFit.shrink_to_fit(_bubble_text, BUBBLE_FONT_SIZE)
 	_compact_clouds()
 	var duration: float = clampf(float(line_text.length()) / CHARS_PER_SECOND, 0.25, 2.2)
 	_typewriter_tween = create_tween()
 	_typewriter_tween.tween_property(_bubble_text, "visible_ratio", 1.0, duration)
-
-
-# Shrinks long text until it fits inside its label.
-func _fit_text(label: RichTextLabel, start_size: int) -> void:
-	var size_px: int = start_size
-	label.add_theme_font_size_override("normal_font_size", size_px)
-	await get_tree().process_frame
-	while size_px > 10 and label.get_content_height() > label.size.y:
-		size_px -= 1
-		label.add_theme_font_size_override("normal_font_size", size_px)
-		await get_tree().process_frame
 
 
 ## Trims both clouds to their content so they never grow larger than the text needs.
@@ -245,7 +237,7 @@ func _rebuild_choices() -> void:
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		btn.add_theme_font_size_override("font_size", 13)
+		btn.add_theme_font_size_override("font_size", CHOICE_FONT_SIZE)
 		_style_choice_button(btn)
 		btn.text = _current_choices[i].get("label", "Continue")
 		btn.pressed.connect(_select_choice.bind(i))
@@ -282,7 +274,7 @@ func _show_full_scene(scene_path: String, outcome_text: String, back_path: Strin
 		node.visible = false
 	_outcome_label.text = outcome_text
 	_outcome_panel.visible = not outcome_text.is_empty()
-	_fit_text(_outcome_label, 28)
+	TextFit.shrink_to_fit(_outcome_label, OUTCOME_FONT_SIZE)
 	_current_choices = []
 	_scene_only = true
 	return true

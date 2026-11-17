@@ -7,6 +7,12 @@ const TAG_FONT_SIZE: int = 22
 const TAG_TEXT_COLOR: Color = Color(0.3, 0.16, 0.08)
 const TAG_PADDING: Vector2 = Vector2(30, 14)
 const HOVER_SCALE: float = 1.08
+const SCROLL_TEXTURE: Texture2D = preload("res://assets/scroll.png")
+const SCROLL_HEIGHT: float = 660.0
+const SCROLL_TEXT_MARGINS: Vector4 = Vector4(0.14, 0.22, 0.2, 0.14)  # left, top, right, bottom as image fractions
+const SCROLL_FONT_SIZE: int = 26
+const SCROLL_TEXT_COLOR: Color = Color(0.2, 0.11, 0.04)
+const COLLAPSE_ENDING: String = "The town collapsed into chaos. Crimson spilled across the streets, left and right. The holy temple, where good and evil meet, locked its gates in terror, and dozens of glittering eyes peered out through the stained glass windows. But no priests were inside. The servants of St. Sinerwood were out feasting, celebrating the dawn of a new order. All across town, folk fell to sudden, wild strokes of love, and in their madness, some took their own lives charmed by a spell."
 
 var _map: TextureRect
 var _tags: Dictionary = {}  # character_id -> Button
@@ -31,6 +37,8 @@ func _ready() -> void:
 
 	resized.connect(_place_tags)
 	_place_tags()
+	if GameState.is_town_collapsed():
+		_show_collapse_scroll()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -39,6 +47,40 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		SceneTransition.change_scene(GameState.MENU_SCENE)
+
+
+## Dims the map and unrolls the closing scroll; a click dismisses it.
+func _show_collapse_scroll() -> void:
+	var overlay := ColorRect.new()
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.color = Color(0.05, 0.03, 0.08, 0.55)
+	overlay.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed:
+			overlay.queue_free())
+	add_child(overlay)
+
+	var scroll := TextureRect.new()
+	scroll.texture = SCROLL_TEXTURE
+	scroll.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	scroll.stretch_mode = TextureRect.STRETCH_SCALE
+	scroll.custom_minimum_size = Vector2(SCROLL_HEIGHT * SCROLL_TEXTURE.get_width() / SCROLL_TEXTURE.get_height(), SCROLL_HEIGHT)
+	scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(center)
+	center.add_child(scroll)
+
+	var label := RichTextLabel.new()
+	label.position = scroll.custom_minimum_size * Vector2(SCROLL_TEXT_MARGINS.x, SCROLL_TEXT_MARGINS.y)
+	label.size = scroll.custom_minimum_size * Vector2(1.0 - SCROLL_TEXT_MARGINS.x - SCROLL_TEXT_MARGINS.z, 1.0 - SCROLL_TEXT_MARGINS.y - SCROLL_TEXT_MARGINS.w)
+	label.scroll_active = false
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.text = COLLAPSE_ENDING
+	label.add_theme_font_override("normal_font", STORY_FONT)
+	label.add_theme_color_override("default_color", SCROLL_TEXT_COLOR)
+	scroll.add_child(label)
+	TextFit.shrink_to_fit(label, SCROLL_FONT_SIZE)
 
 
 func _make_tag(character_id: String, data: Dictionary) -> Button:
