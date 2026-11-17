@@ -1,0 +1,204 @@
+[gd_scene format=3 uid="uid://bbkn0gjsls1mf"]
+
+[ext_resource type="Script" path="res://scripts/dialogue.gd" id="1_dialogue"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.11, 0.1, 0.14, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.34, 0.3, 0.26, 0.75)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_portrait"]
+bg_color = Color(0.08, 0.07, 0.1, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.28, 0.25, 0.23, 0.85)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_portrait_border"]
+draw_center = false
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.28, 0.25, 0.23, 0.85)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="Root" type="Control" unique_id=1969378521]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_dialogue")
+
+[node name="Background" type="ColorRect" parent="." unique_id=871673936]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.07, 0.06, 0.09, 1)
+
+[node name="AmbientTint" type="ColorRect" parent="." unique_id=1178953218]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.18, 0.15, 0.1, 0.35)
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=673081919]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 44
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 44
+theme_override_constants/margin_bottom = 32
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1275230143]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TopBar" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=2038342675]
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="MarginContainer/VBoxContainer/TopBar" unique_id=1926814410]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "Back"
+
+[node name="ContentRow" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=37569395]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="PortraitCard" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentRow" unique_id=1525286047]
+custom_minimum_size = Vector2(290, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="PortraitMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/ContentRow/PortraitCard" unique_id=640016523]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 22
+
+[node name="PortraitVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentRow/PortraitCard/PortraitMargin" unique_id=1892060765]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PortraitFrame" type="Panel" parent="MarginContainer/VBoxContainer/ContentRow/PortraitCard/PortraitMargin/PortraitVBox" unique_id=675301108]
+clip_children = 2
+custom_minimum_size = Vector2(0, 250)
+clip_contents = true
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_portrait")
+
+[node name="Tint" type="ColorRect" parent="MarginContainer/VBoxContainer/ContentRow/PortraitCard/PortraitMargin/PortraitVBox/PortraitFrame" unique_id=1679009536]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.18, 0.15, 0.1, 1)
+
+[node name="PortraitTexture" type="TextureRect" parent="MarginContainer/VBoxContainer/ContentRow/PortraitCard/PortraitMargin/PortraitVBox/PortraitFrame" unique_id=233972142]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PortraitBorder" type="Panel" parent="MarginContainer/VBoxContainer/ContentRow/PortraitCard/PortraitMargin/PortraitVBox/PortraitFrame" unique_id=1902953649]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_portrait_border")
+
+[node name="CharacterTitleLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/PortraitCard/PortraitMargin/PortraitVBox" unique_id=351816186]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 0.87, 1)
+theme_override_font_sizes/font_size = 24
+text = "Role"
+
+[node name="CharacterNameLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/PortraitCard/PortraitMargin/PortraitVBox" unique_id=1632704466]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.84, 0.69, 0.36, 1)
+theme_override_font_sizes/font_size = 14
+text = "Name"
+
+[node name="CharacterSummaryLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/PortraitCard/PortraitMargin/PortraitVBox" unique_id=504850363]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.66, 0.63, 0.6, 1)
+theme_override_font_sizes/font_size = 13
+text = "Description"
+autowrap_mode = 3
+
+[node name="DialogueCard" type="PanelContainer" parent="MarginContainer/VBoxContainer/ContentRow" unique_id=865883897]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="DialogueMargin" type="MarginContainer" parent="MarginContainer/VBoxContainer/ContentRow/DialogueCard" unique_id=1787868330]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 28
+
+[node name="DialogueVBox" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentRow/DialogueCard/DialogueMargin" unique_id=1235136653]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SpeakerHeader" type="HBoxContainer" parent="MarginContainer/VBoxContainer/ContentRow/DialogueCard/DialogueMargin/DialogueVBox" unique_id=310231437]
+layout_mode = 2
+
+[node name="DialogueText" type="RichTextLabel" parent="MarginContainer/VBoxContainer/ContentRow/DialogueCard/DialogueMargin/DialogueVBox" unique_id=1840849492]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 1
+theme_override_colors/default_color = Color(0.93, 0.9, 0.85, 1)
+theme_override_font_sizes/normal_font_size = 18
+text = "Peace be with you, traveler."
+scroll_active = false
+
+[node name="ChoicesContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentRow/DialogueCard/DialogueMargin/DialogueVBox" unique_id=1035609420]
+layout_mode = 2
+theme_override_constants/separation = 8

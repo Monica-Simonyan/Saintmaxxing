@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://bvqk3yl8xmn5d"]
+
+[ext_resource type="Script" uid="uid://c8mxvt3n7qf2p" path="res://scripts/unicorn_monologue.gd" id="1_monologue"]
+
+[node name="Root" type="Control" unique_id=2122779572]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_monologue")
+
+[node name="Background" type="ColorRect" parent="." unique_id=538933251]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.07, 0.06, 0.09, 1)
+
+[node name="HairPanel" type="MarginContainer" parent="." unique_id=1156192228]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HairPanel" unique_id=1261626855]
+vertical_scroll_mode = 3
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="LinesContainer" type="VBoxContainer" parent="HairPanel/ScrollContainer" unique_id=1043467921]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="ContinueButton" type="Button" parent="." unique_id=1095622947]
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -308.0
+offset_top = -88.0
+offset_right = -48.0
+offset_bottom = -40.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_default_cursor_shape = 2
+text = "Begin"
