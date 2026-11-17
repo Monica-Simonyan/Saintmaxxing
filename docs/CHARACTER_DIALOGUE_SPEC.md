@@ -18,7 +18,7 @@ Follow this for every new character so they all behave and look alike.
 "brothel_worker": {
 	"id": "brothel_worker",
 	"map_pos": Vector2(0.47, 0.77),      # tag centre, fraction of the map image
-	"name": "Rose",                      # shown on the map tag
+	"name": "Brothel",                     # shown on the map tag
 	"effects": {                         # applied once, when the conversation ends
 		"converted": {"love": -25, "justice": -15},
 		"spared":    {"love": 25},

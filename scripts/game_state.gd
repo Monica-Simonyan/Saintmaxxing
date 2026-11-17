@@ -28,7 +28,7 @@ var characters: Dictionary = {
 	"priest": {
 		"id": "priest",
 		"map_pos": Vector2(0.19, 0.33),  # tag centre as a fraction of the map image
-		"name": "Priest",
+		"name": "Temple",
 		"effects": {
 			"converted": {"love": 25, "faith": 25},
 			"spared": {"love": -25, "faith": -25},
@@ -116,7 +116,7 @@ var characters: Dictionary = {
 	"witch": {
 		"id": "witch",
 		"map_pos": Vector2(0.85, 0.43),  # tag centre as a fraction of the map image
-		"name": "Ahsoka",
+		"name": "Hut",
 		"effects": {
 			"converted": {"love": 25, "magic": 25},
 			"spared": {"love": -15, "magic": -25},
@@ -224,7 +224,7 @@ var characters: Dictionary = {
 	"vampire": {
 		"id": "vampire",
 		"map_pos": Vector2(0.80, 0.93),  # tag centre as a fraction of the map image
-		"name": "Vampire",
+		"name": "Castle",
 		"effects": {
 			"converted": {"justice": -25},
 			"spared": {"justice": 25},
@@ -318,7 +318,7 @@ var characters: Dictionary = {
 	"brothel_worker": {
 		"id": "brothel_worker",
 		"map_pos": Vector2(0.47, 0.77),  # tag centre as a fraction of the map image
-		"name": "Rose",
+		"name": "Brothel",
 		"effects": {
 			"converted": {"love": -25, "justice": -15},
 			"spared": {"love": 25},
