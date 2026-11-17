@@ -52,7 +52,8 @@ func _ready() -> void:
 func _make_menu_button(text: String, on_pressed: Callable) -> Button:
 	var button := Button.new()
 	button.text = text
-	button.custom_minimum_size = Vector2(200, 44)
+	button.custom_minimum_size = Vector2(220, 56)
+	MenuButtonStyle.apply(button)
 	button.pressed.connect(on_pressed)
 	return button
 

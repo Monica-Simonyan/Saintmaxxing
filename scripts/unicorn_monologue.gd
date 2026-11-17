@@ -27,6 +27,7 @@ var _busy: bool = true  # blocks clicks until the unicorn has drifted in
 
 func _ready() -> void:
 	_place_hair_panel()
+	MenuButtonStyle.apply(continue_button, 28)
 	continue_button.hide()
 	continue_button.pressed.connect(_on_continue)
 	await _drift_unicorn_in()

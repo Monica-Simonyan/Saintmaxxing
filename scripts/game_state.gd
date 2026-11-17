@@ -19,8 +19,9 @@ const CHARACTER_ORDER: Array[String] = [
 signal stat_changed(stat_id: String, value: int, applied_delta: int)
 
 const STAT_MAX: int = 100
+const STAT_START: int = 50
 
-var stats: Dictionary = {"love": 50, "faith": 50, "justice": 50, "magic": 50}
+var stats: Dictionary = {"love": STAT_START, "faith": STAT_START, "justice": STAT_START, "magic": STAT_START}
 var selected_character_id: String = "priest"
 var completed_conversations: Dictionary = {}
 
@@ -503,7 +504,7 @@ var characters: Dictionary = {
 
 
 func reset_state() -> void:
-	stats = {"love": 50, "faith": 50, "justice": 50, "magic": 50}
+	stats = {"love": STAT_START, "faith": STAT_START, "justice": STAT_START, "magic": STAT_START}
 	selected_character_id = "priest"
 	completed_conversations = {}
 	for stat_id in stats:
@@ -553,12 +554,5 @@ func is_intro_scene() -> bool:
 	return scene != null and scene.scene_file_path in [MENU_SCENE, UNICORN_MONOLOGUE_SCENE]
 
 
-## True once every character has been spoken to and every stat ended below 50.
-func is_town_collapsed() -> bool:
-	for character_id in CHARACTER_ORDER:
-		if not is_conversation_completed(character_id):
-			return false
-	for stat_id in stats:
-		if stats[stat_id] >= 50:
-			return false
-	return true
+func all_conversations_completed() -> bool:
+	return CHARACTER_ORDER.all(is_conversation_completed)

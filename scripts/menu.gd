@@ -9,6 +9,7 @@ var _starting: bool = false
 
 
 func _ready() -> void:
+	MenuButtonStyle.apply(play_button, 28)
 	play_button.pressed.connect(_on_play_pressed)
 	unicorn.texture = UNICORN_TEXTURE
 	unicorn.expand_mode = TextureRect.EXPAND_IGNORE_SIZE

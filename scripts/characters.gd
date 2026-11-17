@@ -12,7 +12,27 @@ const SCROLL_HEIGHT: float = 660.0
 const SCROLL_TEXT_MARGINS: Vector4 = Vector4(0.14, 0.22, 0.2, 0.14)  # left, top, right, bottom as image fractions
 const SCROLL_FONT_SIZE: int = 26
 const SCROLL_TEXT_COLOR: Color = Color(0.2, 0.11, 0.04)
-const COLLAPSE_ENDING: String = "The town collapsed into chaos. Crimson spilled across the streets, left and right. The holy temple, where good and evil meet, locked its gates in terror, and dozens of glittering eyes peered out through the stained glass windows. But no priests were inside. The servants of St. Sinerwood were out feasting, celebrating the dawn of a new order. All across town, folk fell to sudden, wild strokes of love, and in their madness, some took their own lives charmed by a spell."
+const NEWS_HEADLINE: String = "On today's news of Sinerwood"
+# Paragraph per stat, in reading order; a stat that ended exactly at 50 adds nothing.
+const NEWS_ORDER: Array[String] = ["justice", "faith", "magic", "love"]
+const NEWS: Dictionary = {
+	"justice": {
+		"down": "Oh sweet lord, since when are our folk so violent? What has gone wrong, I wonder?",
+		"up": "As unbelievable as it is, my darling neighbours started following law!! Some very interesting affairs are running in the city!!",
+	},
+	"faith": {
+		"down": "Ah to no one's surprise the heretic and bribetaking whoreson ruined the last peace of spiritual hope in our already Godforsaken town. We can only hope for forgiveness now.",
+		"up": "Sweet reader you won't believe, but that \"Godfearing\" priest finally started using the donations for good!! I wonder what divine power infiltrated our town that our neighbours started praying once more.",
+	},
+	"magic": {
+		"down": "Another day, another curse upon our souls. That witch poisoned my cows again!!! I'd go have a talk with that evil woman if I didn't knew she'd turn me into some ugly bastard.",
+		"up": "Folks, as shocked as I am, the witch that poisoned my cows not only saved them, but started helping our agricultural comrades. One can only wonder what new magic is brewing in town.",
+	},
+	"love": {
+		"down": "Alas our town is saddened by many, my sweet citizens weren't the most enthusiastic but now they are feeling as down as it gets.",
+		"up": "Why look at that! These sweet things are starting to develop feelings that were unknown to them before.",
+	},
+}
 
 var _map: TextureRect
 var _tags: Dictionary = {}  # character_id -> Button
@@ -37,8 +57,8 @@ func _ready() -> void:
 
 	resized.connect(_place_tags)
 	_place_tags()
-	if GameState.is_town_collapsed():
-		_show_collapse_scroll()
+	if GameState.all_conversations_completed():
+		_show_ending_scroll(_compose_news())
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -49,8 +69,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		SceneTransition.change_scene(GameState.MENU_SCENE)
 
 
-## Dims the map and unrolls the closing scroll; a click dismisses it.
-func _show_collapse_scroll() -> void:
+## Builds the town newspaper from how each stat moved away from its starting value.
+func _compose_news() -> String:
+	var paragraphs: Array[String] = ["[center]%s[/center]\n" % NEWS_HEADLINE]
+	for stat_id in NEWS_ORDER:
+		var change: int = signi(GameState.stats[stat_id] - GameState.STAT_START)
+		if change != 0:
+			paragraphs.append(NEWS[stat_id]["up" if change > 0 else "down"])
+	return "\n".join(paragraphs)
+
+
+## Dims the map and unrolls a closing scroll with the given text; a click dismisses it.
+func _show_ending_scroll(text: String) -> void:
 	var overlay := ColorRect.new()
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	overlay.color = Color(0.05, 0.03, 0.08, 0.55)
@@ -76,7 +106,8 @@ func _show_collapse_scroll() -> void:
 	label.size = scroll.custom_minimum_size * Vector2(1.0 - SCROLL_TEXT_MARGINS.x - SCROLL_TEXT_MARGINS.z, 1.0 - SCROLL_TEXT_MARGINS.y - SCROLL_TEXT_MARGINS.w)
 	label.scroll_active = false
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.text = COLLAPSE_ENDING
+	label.bbcode_enabled = true
+	label.text = text
 	label.add_theme_font_override("normal_font", STORY_FONT)
 	label.add_theme_color_override("default_color", SCROLL_TEXT_COLOR)
 	scroll.add_child(label)
