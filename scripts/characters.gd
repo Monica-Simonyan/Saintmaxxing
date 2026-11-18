@@ -8,10 +8,15 @@ const TAG_TEXT_COLOR: Color = Color(0.3, 0.16, 0.08)
 const TAG_PADDING: Vector2 = Vector2(30, 14)
 const HOVER_SCALE: float = 1.08
 const SCROLL_TEXTURE: Texture2D = preload("res://assets/scroll.png")
+const INTRO_SCROLL_TEXTURE: Texture2D = preload("res://assets/scroll_intro.png")
 const SCROLL_HEIGHT: float = 660.0
 const SCROLL_TEXT_MARGINS: Vector4 = Vector4(0.14, 0.22, 0.2, 0.14)  # left, top, right, bottom as image fractions
 const SCROLL_FONT_SIZE: int = 26
 const SCROLL_TEXT_COLOR: Color = Color(0.2, 0.11, 0.04)
+const SCROLL_HINT: String = "Click outside scroll to close"
+const SCROLL_HINT_SIZE: int = 18
+const SCROLL_HINT_HEIGHT: float = 34.0
+const INTRO_TEXT: String = "There there now. Our saint Max is quite worked up over this town, eh?\n\nYou seem charismatic enough.\n\nHelp our friend convince those sinners to become kinder. But be careful, sweetheart, not everyone\u2019s \u201ckindness\u201d benefits us. Now go forth"
 const NEWS_HEADLINE: String = "On today's news of Sinerwood"
 # Paragraph per stat, in reading order; a stat that ended exactly at 50 adds nothing.
 const NEWS_ORDER: Array[String] = ["justice", "faith", "magic", "love"]
@@ -58,7 +63,10 @@ func _ready() -> void:
 	resized.connect(_place_tags)
 	_place_tags()
 	if GameState.all_conversations_completed():
-		_show_ending_scroll(_compose_news())
+		_show_scroll(_compose_news())
+	elif not GameState.map_intro_shown:
+		GameState.map_intro_shown = true
+		_show_scroll(INTRO_TEXT, INTRO_SCROLL_TEXTURE)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -79,8 +87,8 @@ func _compose_news() -> String:
 	return "\n".join(paragraphs)
 
 
-## Dims the map and unrolls a closing scroll with the given text; a click dismisses it.
-func _show_ending_scroll(text: String) -> void:
+## Dims the map and unrolls a scroll with the given text; a click outside the scroll dismisses it.
+func _show_scroll(text: String, texture: Texture2D = SCROLL_TEXTURE) -> void:
 	var overlay := ColorRect.new()
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	overlay.color = Color(0.05, 0.03, 0.08, 0.55)
@@ -90,11 +98,11 @@ func _show_ending_scroll(text: String) -> void:
 	add_child(overlay)
 
 	var scroll := TextureRect.new()
-	scroll.texture = SCROLL_TEXTURE
+	scroll.texture = texture
 	scroll.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	scroll.stretch_mode = TextureRect.STRETCH_SCALE
-	scroll.custom_minimum_size = Vector2(SCROLL_HEIGHT * SCROLL_TEXTURE.get_width() / SCROLL_TEXTURE.get_height(), SCROLL_HEIGHT)
-	scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	scroll.custom_minimum_size = Vector2(SCROLL_HEIGHT * texture.get_width() / texture.get_height(), SCROLL_HEIGHT)
+	scroll.mouse_filter = Control.MOUSE_FILTER_STOP
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -104,6 +112,7 @@ func _show_ending_scroll(text: String) -> void:
 	var label := RichTextLabel.new()
 	label.position = scroll.custom_minimum_size * Vector2(SCROLL_TEXT_MARGINS.x, SCROLL_TEXT_MARGINS.y)
 	label.size = scroll.custom_minimum_size * Vector2(1.0 - SCROLL_TEXT_MARGINS.x - SCROLL_TEXT_MARGINS.z, 1.0 - SCROLL_TEXT_MARGINS.y - SCROLL_TEXT_MARGINS.w)
+	label.size.y -= SCROLL_HINT_HEIGHT
 	label.scroll_active = false
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.bbcode_enabled = true
@@ -112,6 +121,18 @@ func _show_ending_scroll(text: String) -> void:
 	label.add_theme_color_override("default_color", SCROLL_TEXT_COLOR)
 	scroll.add_child(label)
 	TextFit.shrink_to_fit(label, SCROLL_FONT_SIZE)
+
+	var hint := Label.new()
+	hint.text = SCROLL_HINT
+	hint.position = Vector2(label.position.x, label.position.y + label.size.y)
+	hint.size = Vector2(label.size.x, SCROLL_HINT_HEIGHT)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hint.add_theme_font_override("font", STORY_FONT)
+	hint.add_theme_font_size_override("font_size", SCROLL_HINT_SIZE)
+	hint.add_theme_color_override("font_color", SCROLL_TEXT_COLOR)
+	scroll.add_child(hint)
 
 
 func _make_tag(character_id: String, data: Dictionary) -> Button:

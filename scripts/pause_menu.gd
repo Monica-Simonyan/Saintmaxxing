@@ -47,6 +47,7 @@ func _ready() -> void:
 
 	box.add_child(_make_menu_button("Resume", _resume))
 	box.add_child(_make_menu_button("Restart", _restart))
+	box.add_child(_make_menu_button("Exit", _exit_game))
 
 
 func _make_menu_button(text: String, on_pressed: Callable) -> Button:
@@ -95,3 +96,12 @@ func _restart() -> void:
 	_resume()
 	GameState.reset_state()
 	SceneTransition.change_scene(GameState.MENU_SCENE)
+
+
+func _exit_game() -> void:
+	if OS.has_feature("web"):
+		# Browsers usually refuse to close a tab the page didn't open, so fall back to the menu.
+		JavaScriptBridge.eval("window.close()")
+		_restart()
+		return
+	get_tree().quit()

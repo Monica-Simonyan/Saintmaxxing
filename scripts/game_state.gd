@@ -24,6 +24,7 @@ const STAT_START: int = 50
 var stats: Dictionary = {"love": STAT_START, "faith": STAT_START, "justice": STAT_START, "magic": STAT_START}
 var selected_character_id: String = "priest"
 var completed_conversations: Dictionary = {}
+var map_intro_shown: bool = false
 
 var characters: Dictionary = {
 	"priest": {
@@ -507,6 +508,7 @@ func reset_state() -> void:
 	stats = {"love": STAT_START, "faith": STAT_START, "justice": STAT_START, "magic": STAT_START}
 	selected_character_id = "priest"
 	completed_conversations = {}
+	map_intro_shown = false
 	for stat_id in stats:
 		stat_changed.emit(stat_id, stats[stat_id], 0)
 
