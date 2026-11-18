@@ -2,7 +2,6 @@ class_name MenuButtonStyle
 ## Gives a Button the hand-drawn pink look used by every menu button.
 
 const TEXTURE: Texture2D = preload("res://assets/menu_button.png")
-const FONT: Font = preload("res://assets/fonts/Eleanora.ttf")
 const TEXT_COLOR: Color = Color(0.45, 0.2, 0.2)
 const HOVER_TINT: Color = Color(1.06, 1.0, 0.96)
 const PRESSED_TINT: Color = Color(0.9, 0.82, 0.82)
@@ -11,7 +10,7 @@ const PADDING: Vector2 = Vector2(28, 12)
 
 static func apply(button: Button, font_size: int = 24) -> void:
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	button.add_theme_font_override("font", FONT)
+	button.add_theme_font_override("font", GameState.STORY_FONT)
 	button.add_theme_font_size_override("font_size", font_size)
 	for color_name in ["font_color", "font_hover_color", "font_pressed_color", "font_disabled_color", "font_focus_color"]:
 		button.add_theme_color_override(color_name, TEXT_COLOR)

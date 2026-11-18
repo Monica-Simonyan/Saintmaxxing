@@ -6,6 +6,9 @@ const CLICK: AudioStream = preload("res://assets/audio/menu_click.wav")
 const STAT_UP: AudioStream = preload("res://assets/audio/magical_1.ogg")
 const STAT_DOWN: AudioStream = preload("res://assets/audio/magical_4.ogg")
 
+const MUSIC_VOLUME_DB: float = -10.0  # sits under the effects so they stay audible
+const STAT_SOUND_VOLUME_DB: float = 4.0
+
 var _music_player: AudioStreamPlayer
 var _click_player: AudioStreamPlayer
 
@@ -15,6 +18,7 @@ func _ready() -> void:
 
 	_music_player = AudioStreamPlayer.new()
 	_music_player.stream = MUSIC
+	_music_player.volume_db = MUSIC_VOLUME_DB
 	_music_player.finished.connect(_music_player.play)
 	add_child(_music_player)
 	_music_player.play()
@@ -39,11 +43,12 @@ func play_click() -> void:
 func play_stat_change(increased: bool) -> void:
 	var player := AudioStreamPlayer.new()
 	player.stream = STAT_UP if increased else STAT_DOWN
+	player.volume_db = STAT_SOUND_VOLUME_DB
 	player.finished.connect(player.queue_free)
 	add_child(player)
 	player.play()
 
 
 func _on_node_added(node: Node) -> void:
-	if node is BaseButton:
+	if node is BaseButton and not (node as BaseButton).pressed.is_connected(play_click):
 		(node as BaseButton).pressed.connect(play_click)

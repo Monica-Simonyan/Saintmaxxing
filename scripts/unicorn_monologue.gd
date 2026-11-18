@@ -1,14 +1,6 @@
 extends Control
 
-const LINES: Array[String] = [
-	"What has come over this town?",
-	"Knights chase after maidens, maidens chase after priests, and blood is everywhere.",
-	"Anarchy, chaos!!! I’m going to have a little word with every last one of them. ",
-	"Don’t worry, darlings, I’ll be dusting each of you with my shimmering wisdom.",
-	"You may not want it, but you definitely need it.",
-]
-
-const STORY_FONT: Font = preload("res://assets/fonts/GrandMalon-Regular.ttf")
+const LINE_COUNT: int = 5  # keys monologue.line-1 .. monologue.line-N
 
 const TYPE_SPEED: float = 0.03   # seconds per character
 const DRIFT_SECONDS: float = 1.2
@@ -20,6 +12,8 @@ const LINE_FADE_IN: float = 0.25  # seconds for a line bubble to appear
 @onready var continue_button: Button = $ContinueButton
 
 var _current_line: int = 0
+var _bubbles: Dictionary = {}  # RichTextLabel -> line number, for re-translating
+var _typing_bubble: RichTextLabel
 var _is_typing: bool = false
 var _skip_typing: bool = false
 var _busy: bool = true  # blocks clicks until the unicorn has drifted in
@@ -30,6 +24,8 @@ func _ready() -> void:
 	MenuButtonStyle.apply(continue_button, 28)
 	continue_button.hide()
 	continue_button.pressed.connect(_on_continue)
+	continue_button.text = Localization.t("monologue.begin")
+	Localization.language_changed.connect(_apply_language)
 	await _drift_unicorn_in()
 	_busy = false
 	_show_next_line()
@@ -77,20 +73,21 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		if _is_typing:
 			_skip_typing = true
-		elif not _busy and _current_line < LINES.size():
+		elif not _busy and _current_line < LINE_COUNT:
 			_show_next_line()
 
 
 func _show_next_line() -> void:
-	if _current_line >= LINES.size():
+	if _current_line >= LINE_COUNT:
 		_finish_monologue()
 		return
 
 	_busy = true
-	var text: String = LINES[_current_line]
+	var line_number: int = _current_line + 1
 	_current_line += 1
 
 	var bubble := _make_bubble()
+	_bubbles[bubble] = line_number
 	lines_container.add_child(bubble)
 
 	# Fade the line in
@@ -99,10 +96,10 @@ func _show_next_line() -> void:
 	tween.tween_property(bubble, "modulate:a", 1.0, LINE_FADE_IN)
 	await tween.finished
 
-	await _type_text(bubble, text)
+	await _type_text(bubble, line_number)
 	_busy = false
 
-	if _current_line >= LINES.size():
+	if _current_line >= LINE_COUNT:
 		_finish_monologue()
 
 
@@ -114,7 +111,7 @@ func _make_bubble() -> RichTextLabel:
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 	label.add_theme_color_override("default_color", Color(0.95, 0.90, 1.0, 1.0))
-	label.add_theme_font_override("normal_font", STORY_FONT)
+	label.add_theme_font_override("normal_font", GameState.STORY_FONT)
 	label.add_theme_font_size_override("normal_font_size", 22)
 	label.add_theme_color_override("font_shadow_color", Color(0.1, 0.0, 0.12, 0.7))
 	label.add_theme_constant_override("shadow_offset_x", 1)
@@ -122,20 +119,36 @@ func _make_bubble() -> RichTextLabel:
 	return label
 
 
-func _type_text(label: RichTextLabel, full_text: String) -> void:
+func _line_text(line_number: int) -> String:
+	return Localization.t("monologue.line-%d" % line_number)
+
+
+## Types the line out; the text is looked up each step so a language change mid-line takes effect.
+func _type_text(label: RichTextLabel, line_number: int) -> void:
 	_is_typing = true
 	_skip_typing = false
+	_typing_bubble = label
 
 	label.text = ""
-	for i in full_text.length():
+	var typed: int = 0
+	while typed < _line_text(line_number).length():
 		if _skip_typing:
-			label.text = full_text
 			break
-		label.text = full_text.substr(0, i + 1)
+		typed += 1
+		label.text = _line_text(line_number).substr(0, typed)
 		await get_tree().create_timer(TYPE_SPEED).timeout
+	label.text = _line_text(line_number)
 
+	_typing_bubble = null
 	_is_typing = false
 	_skip_typing = false
+
+
+func _apply_language() -> void:
+	continue_button.text = Localization.t("monologue.begin")
+	for bubble in _bubbles:
+		if bubble != _typing_bubble:
+			bubble.text = _line_text(_bubbles[bubble])
 
 
 func _finish_monologue() -> void:

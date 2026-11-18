@@ -2,45 +2,25 @@ extends Control
 ## Town map: each character stands at a house marked with a name tag; clicking a tag starts their dialogue.
 
 const TAG_TEXTURE: Texture2D = preload("res://assets/map_tag.png")
-const STORY_FONT: Font = preload("res://assets/fonts/GrandMalon-Regular.ttf")
 const TAG_FONT_SIZE: int = 22
 const TAG_TEXT_COLOR: Color = Color(0.3, 0.16, 0.08)
 const TAG_PADDING: Vector2 = Vector2(30, 14)
 const HOVER_SCALE: float = 1.08
-const SCROLL_TEXTURE: Texture2D = preload("res://assets/scroll.png")
-const INTRO_SCROLL_TEXTURE: Texture2D = preload("res://assets/scroll_intro.png")
+const SCROLL_TEXTURE: Texture2D = preload("res://assets/scroll_intro.png")
 const SCROLL_HEIGHT: float = 660.0
-const SCROLL_TEXT_MARGINS: Vector4 = Vector4(0.14, 0.22, 0.2, 0.14)  # left, top, right, bottom as image fractions
+const SCROLL_TEXT_MARGINS: Vector4 = Vector4(0.18, 0.22, 0.19, 0.14)  # left, top, right, bottom as image fractions
 const SCROLL_FONT_SIZE: int = 26
 const SCROLL_TEXT_COLOR: Color = Color(0.2, 0.11, 0.04)
-const SCROLL_HINT: String = "Click outside scroll to close"
 const SCROLL_HINT_SIZE: int = 18
 const SCROLL_HINT_HEIGHT: float = 34.0
-const INTRO_TEXT: String = "There there now. Our saint Max is quite worked up over this town, eh?\n\nYou seem charismatic enough.\n\nHelp our friend convince those sinners to become kinder. But be careful, sweetheart, not everyone\u2019s \u201ckindness\u201d benefits us. Now go forth"
-const NEWS_HEADLINE: String = "On today's news of Sinerwood"
-# Paragraph per stat, in reading order; a stat that ended exactly at 50 adds nothing.
+# Paragraph per stat, in reading order (keys scroll.news.<stat>-up/-down); a stat that ended exactly at 50 adds nothing.
 const NEWS_ORDER: Array[String] = ["justice", "faith", "magic", "love"]
-const NEWS: Dictionary = {
-	"justice": {
-		"down": "Oh sweet lord, since when are our folk so violent? What has gone wrong, I wonder?",
-		"up": "As unbelievable as it is, my darling neighbours started following law!! Some very interesting affairs are running in the city!!",
-	},
-	"faith": {
-		"down": "Ah to no one's surprise the heretic and bribetaking whoreson ruined the last peace of spiritual hope in our already Godforsaken town. We can only hope for forgiveness now.",
-		"up": "Sweet reader you won't believe, but that \"Godfearing\" priest finally started using the donations for good!! I wonder what divine power infiltrated our town that our neighbours started praying once more.",
-	},
-	"magic": {
-		"down": "Another day, another curse upon our souls. That witch poisoned my cows again!!! I'd go have a talk with that evil woman if I didn't knew she'd turn me into some ugly bastard.",
-		"up": "Folks, as shocked as I am, the witch that poisoned my cows not only saved them, but started helping our agricultural comrades. One can only wonder what new magic is brewing in town.",
-	},
-	"love": {
-		"down": "Alas our town is saddened by many, my sweet citizens weren't the most enthusiastic but now they are feeling as down as it gets.",
-		"up": "Why look at that! These sweet things are starting to develop feelings that were unknown to them before.",
-	},
-}
 
 var _map: TextureRect
 var _tags: Dictionary = {}  # character_id -> Button
+var _scroll_label: RichTextLabel
+var _scroll_hint: Label
+var _scroll_text: Callable
 
 
 func _ready() -> void:
@@ -62,11 +42,12 @@ func _ready() -> void:
 
 	resized.connect(_place_tags)
 	_place_tags()
+	Localization.language_changed.connect(_apply_language)
 	if GameState.all_conversations_completed():
-		_show_scroll(_compose_news(), SCROLL_TEXTURE, PauseMenu.show_ending)
+		_show_scroll(_compose_news, PauseMenu.show_ending)
 	elif not GameState.map_intro_shown:
 		GameState.map_intro_shown = true
-		_show_scroll(INTRO_TEXT, INTRO_SCROLL_TEXTURE)
+		_show_scroll(func() -> String: return Localization.t("scroll.intro"))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -79,31 +60,44 @@ func _unhandled_input(event: InputEvent) -> void:
 
 ## Builds the town newspaper from how each stat moved away from its starting value.
 func _compose_news() -> String:
-	var paragraphs: Array[String] = ["[center]%s[/center]\n" % NEWS_HEADLINE]
+	var paragraphs: Array[String] = ["[center]%s[/center]\n" % Localization.t("scroll.news-headline")]
 	for stat_id in NEWS_ORDER:
 		var change: int = signi(GameState.stats[stat_id] - GameState.STAT_START)
 		if change != 0:
-			paragraphs.append(NEWS[stat_id]["up" if change > 0 else "down"])
+			paragraphs.append(Localization.t("scroll.news.%s-%s" % [stat_id, "up" if change > 0 else "down"]))
 	return "\n".join(paragraphs)
 
 
-## Dims the map and unrolls a scroll with the given text; a click outside the scroll dismisses it and then runs on_dismiss.
-func _show_scroll(text: String, texture: Texture2D = SCROLL_TEXTURE, on_dismiss: Callable = Callable()) -> void:
+## Re-translates the map tags and any open scroll.
+func _apply_language() -> void:
+	for character_id in _tags:
+		(_tags[character_id] as Button).text = Localization.t(GameState.get_character(character_id).get("name", ""))
+	_place_tags()
+	if _scroll_label != null and is_instance_valid(_scroll_label):
+		_scroll_label.text = _scroll_text.call()
+		_scroll_hint.text = Localization.t("scroll.hint")
+		TextFit.shrink_to_fit(_scroll_label, SCROLL_FONT_SIZE)
+
+
+## Dims the map and unrolls a scroll with the text text_for returns; a click outside the scroll dismisses it and then runs on_dismiss.
+func _show_scroll(text_for: Callable, on_dismiss: Callable = Callable()) -> void:
 	var overlay := ColorRect.new()
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	overlay.color = Color(0.05, 0.03, 0.08, 0.55)
+	var dismiss := func() -> void:
+		overlay.queue_free()
+		if on_dismiss.is_valid():
+			on_dismiss.call()
 	overlay.gui_input.connect(func(event: InputEvent) -> void:
 		if event is InputEventMouseButton and event.pressed:
-			overlay.queue_free()
-			if on_dismiss.is_valid():
-				on_dismiss.call())
+			dismiss.call())
 	add_child(overlay)
 
 	var scroll := TextureRect.new()
-	scroll.texture = texture
+	scroll.texture = SCROLL_TEXTURE
 	scroll.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	scroll.stretch_mode = TextureRect.STRETCH_SCALE
-	scroll.custom_minimum_size = Vector2(SCROLL_HEIGHT * texture.get_width() / texture.get_height(), SCROLL_HEIGHT)
+	scroll.custom_minimum_size = Vector2(SCROLL_HEIGHT * SCROLL_TEXTURE.get_width() / SCROLL_TEXTURE.get_height(), SCROLL_HEIGHT)
 	scroll.mouse_filter = Control.MOUSE_FILTER_STOP
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -118,20 +112,27 @@ func _show_scroll(text: String, texture: Texture2D = SCROLL_TEXTURE, on_dismiss:
 	label.scroll_active = false
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.bbcode_enabled = true
-	label.text = text
-	label.add_theme_font_override("normal_font", STORY_FONT)
+	label.text = text_for.call()
+	_scroll_label = label
+	_scroll_text = text_for
+	label.add_theme_font_override("normal_font", GameState.STORY_FONT)
 	label.add_theme_color_override("default_color", SCROLL_TEXT_COLOR)
 	scroll.add_child(label)
 	TextFit.shrink_to_fit(label, SCROLL_FONT_SIZE)
 
 	var hint := Label.new()
-	hint.text = SCROLL_HINT
+	hint.text = Localization.t("scroll.hint")
+	_scroll_hint = hint
 	hint.position = Vector2(label.position.x, label.position.y + label.size.y)
 	hint.size = Vector2(label.size.x, SCROLL_HINT_HEIGHT)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hint.add_theme_font_override("font", STORY_FONT)
+	hint.mouse_filter = Control.MOUSE_FILTER_STOP
+	hint.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	hint.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			dismiss.call())
+	hint.add_theme_font_override("font", GameState.STORY_FONT)
 	hint.add_theme_font_size_override("font_size", SCROLL_HINT_SIZE)
 	hint.add_theme_color_override("font_color", SCROLL_TEXT_COLOR)
 	scroll.add_child(hint)
@@ -141,11 +142,11 @@ func _make_tag(character_id: String, data: Dictionary) -> Button:
 	var done: bool = GameState.is_conversation_completed(character_id)
 
 	var tag := Button.new()
-	tag.text = data.get("name", "")
+	tag.text = Localization.t(data.get("name", ""))
 	tag.disabled = done
 	tag.modulate.a = 0.55 if done else 1.0
 	tag.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	tag.add_theme_font_override("font", STORY_FONT)
+	tag.add_theme_font_override("font", GameState.STORY_FONT)
 	tag.add_theme_font_size_override("font_size", TAG_FONT_SIZE)
 	for color_name in ["font_color", "font_hover_color", "font_pressed_color", "font_disabled_color", "font_focus_color"]:
 		tag.add_theme_color_override(color_name, TAG_TEXT_COLOR)

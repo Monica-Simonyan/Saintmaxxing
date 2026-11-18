@@ -6,6 +6,10 @@ var _button: Button
 var _overlay: ColorRect
 var _title: Label
 var _resume_button: Button
+var _restart_button: Button
+var _exit_button: Button
+var _language_buttons: Dictionary = {}  # language code -> Button
+var _ending: bool = false
 
 
 func _ready() -> void:
@@ -14,7 +18,6 @@ func _ready() -> void:
 
 	_button = Button.new()
 	_button.text = "II"
-	_button.tooltip_text = "Pause"
 	_button.custom_minimum_size = Vector2(40, 40)
 	_button.position = Vector2(16, 10)
 	_button.pressed.connect(_pause)
@@ -46,16 +49,30 @@ func _ready() -> void:
 	_title.add_theme_font_size_override("font_size", 36)
 	box.add_child(_title)
 
-	_resume_button = _make_menu_button("Resume", _resume)
+	var languages := HBoxContainer.new()
+	languages.alignment = BoxContainer.ALIGNMENT_CENTER
+	languages.add_theme_constant_override("separation", 12)
+	box.add_child(languages)
+	for code in Localization.LANGUAGES:
+		var language_button := Button.new()
+		language_button.custom_minimum_size = Vector2(150, 44)
+		MenuButtonStyle.apply(language_button, 20)
+		language_button.pressed.connect(Localization.set_language.bind(code))
+		languages.add_child(language_button)
+		_language_buttons[code] = language_button
+
+	_resume_button = _make_menu_button(_resume)
 	box.add_child(_resume_button)
-	box.add_child(_make_menu_button("Restart", _restart))
-	box.add_child(_make_menu_button("Exit", _exit_game))
+	_restart_button = _make_menu_button(_restart)
+	box.add_child(_restart_button)
+	_exit_button = _make_menu_button(_exit_game)
+	box.add_child(_exit_button)
+	Localization.language_changed.connect(_apply_language)
 	_set_ending_mode(false)
 
 
-func _make_menu_button(text: String, on_pressed: Callable) -> Button:
+func _make_menu_button(on_pressed: Callable) -> Button:
 	var button := Button.new()
-	button.text = text
 	button.custom_minimum_size = Vector2(220, 56)
 	MenuButtonStyle.apply(button)
 	button.pressed.connect(on_pressed)
@@ -95,8 +112,23 @@ func show_ending() -> void:
 
 
 func _set_ending_mode(ending: bool) -> void:
-	_title.text = "The End" if ending else "Paused"
+	_ending = ending
 	_resume_button.visible = not ending
+	_apply_language()
+
+
+func _apply_language() -> void:
+	_button.tooltip_text = Localization.t("ui.pause")
+	_title.text = Localization.t("ui.the-end" if _ending else "ui.paused")
+	_resume_button.text = Localization.t("ui.resume")
+	_restart_button.text = Localization.t("ui.restart")
+	_exit_button.text = Localization.t("ui.exit")
+	for code in _language_buttons:
+		var language_button: Button = _language_buttons[code]
+		var active: bool = code == Localization.language
+		language_button.text = Localization.t("language." + code)
+		language_button.disabled = active
+		language_button.modulate.a = 1.0 if active else 0.6
 
 
 func _pause() -> void:

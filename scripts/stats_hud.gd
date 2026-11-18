@@ -3,10 +3,10 @@ extends CanvasLayer
 
 const ICON_SIZE: float = 30.0
 const STATS: Array[Dictionary] = [
-	{"id": "love", "name": "Love", "icon": "res://assets/stats/love.png", "tip": "Love: the warmth and affection people feel for you."},
-	{"id": "faith", "name": "Faith", "icon": "res://assets/stats/faith.png", "tip": "Faith: your devotion and standing with the Church."},
-	{"id": "justice", "name": "Justice", "icon": "res://assets/stats/justice.png", "tip": "Justice: The fall of rogues and all evil."},
-	{"id": "magic", "name": "Magic", "icon": "res://assets/stats/magic.png", "tip": "Magic: The graceful craft that heals the sick."},
+	{"id": "love", "icon": "res://assets/stats/love.png"},
+	{"id": "faith", "icon": "res://assets/stats/faith.png"},
+	{"id": "justice", "icon": "res://assets/stats/justice.png"},
+	{"id": "magic", "icon": "res://assets/stats/magic.png"},
 ]
 
 var _score_labels: Dictionary = {}
@@ -134,7 +134,7 @@ func _make_stat(stat: Dictionary) -> Control:
 	_stat_boxes[stat["id"]] = box
 	_refresh(stat["id"])
 
-	box.mouse_entered.connect(_show_tooltip.bind(box, stat["tip"]))
+	box.mouse_entered.connect(_show_tooltip.bind(box, stat["id"]))
 	box.mouse_exited.connect(_hide_tooltip)
 	return box
 
@@ -144,8 +144,8 @@ func _refresh(stat_id: String) -> void:
 		(_score_labels[stat_id] as Label).text = "%d/%d" % [GameState.stats[stat_id], GameState.STAT_MAX]
 
 
-func _show_tooltip(anchor: Control, text: String) -> void:
-	_tooltip_label.text = text
+func _show_tooltip(anchor: Control, stat_id: String) -> void:
+	_tooltip_label.text = Localization.t("stats.%s.tip" % stat_id)
 	_tooltip.reset_size()
 	_tooltip.visible = true
 	await get_tree().process_frame

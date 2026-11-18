@@ -38,13 +38,15 @@ Stats: `love`, `faith`, `justice`, `magic`. Outcome keys used so far: `converted
 
 ## 3. Dialogue nodes
 
+All displayed text is a key into `locales/en.json` and `locales/ru.json` (looked up with `Localization.t`). Add a new line to both files; the English one is the fallback.
+
 ```gdscript
 "n11": {
-	"text": "What the NPC says.",
-	"choices": [ {"label": "What the player may say.", "next": "n13"} ],
+	"text": "harlot.n11",                    # translation key, not display text
+	"choices": [ {"label": "harlot.n11.choice-1", "next": "n13"} ],
 },
 "n25": {                                  # ending: empty choices
-	"text": "Narrated outcome shown over the full-screen scene.",
+	"text": "harlot.n25",                    # narrated outcome shown over the full-screen scene
 	"scene": "res://assets/brothel_failed.png",        # optional full-screen art
 	"scene_back": "res://assets/brothel_pure.png",     # optional layer under `scene`
 	"converted": true,                                  # marks the converting outcome
@@ -82,14 +84,14 @@ Rules (taken from the chart):
 - NPC speech cloud top-centre (`BUBBLE_RECT`); text auto-shrinks via `_fit_text`.
 - Hairless, flipped unicorn pinned bottom-right (`UNICORN_HEIGHT`, `UNICORN_BLEED`).
 - Player choices in a separate flipped cloud (`CHOICES_RECT`).
-- Outcome text: Grand Malon 28px in a dark panel.
+- Outcome text: Eleanora 28px in a dark panel.
 
 The scene is fully data-driven: `start_scene`, `start_layers`, `outcome_on_top` and the
 dialogue come from the character data. Used by every character (Rose, priest, witch, vampire).
 
 ## 6. Style rules
 
-- Font: Grand Malon for names, monologue and outcome text.
+- Font: Eleanora for names, monologue and outcome text.
 - Every `BaseButton` click plays a sound automatically (`Audio`).
 - `StatsHud` hidden on the menu, monologue and ending scenes.
 - No stat numbers outside a character's `effects`.
