@@ -38,7 +38,11 @@ if $release; then
 		&& "$GODOT" --headless --path . --export-release "macOS" build/macos/Saintmaxxing.zip >/dev/null 2>&1)
 	tmp=$(mktemp -d)
 	(cd "$SRC/build/windows" && zip -q "$tmp/Saintmaxxing-windows.zip" Saintmaxxing.exe)
-	cp "$SRC/build/macos/Saintmaxxing.zip" "$tmp/Saintmaxxing-macOS.zip"
+	# Godot leaves the template's signature on a modified bundle, which macOS reports as "damaged".
+	mkdir "$tmp/mac" && unzip -q "$SRC/build/macos/Saintmaxxing.zip" -d "$tmp/mac"
+	codesign --force --deep -s - "$tmp/mac"/*.app
+	ditto -c -k --keepParent "$tmp/mac"/*.app "$tmp/Saintmaxxing-macOS.zip"
+	rm -rf "$tmp/mac"
 	gh release create "$version" "$tmp"/*.zip -R "$REPO" -t "Saintmaxxing $version" \
 		-n "Download the zip for your system, unzip it and double-click to play.
 - macOS: right-click the app and choose Open the first time (not signed by Apple).
