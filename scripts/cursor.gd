@@ -16,7 +16,7 @@ var _has_mouse_pos: bool = false
 
 
 func _ready() -> void:
-	layer = 101
+	layer = 128  # above every other layer, including the pause menu (101)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process(false)
 
