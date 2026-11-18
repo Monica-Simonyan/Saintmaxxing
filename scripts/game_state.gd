@@ -172,19 +172,34 @@ var characters: Dictionary = {
 			"w4x": {
 				"text": "witch.w4x",
 				"choices": [
-					{"label": "ui.continue", "next": "e2"},
+					{"label": "witch.w4x.choice-1", "next": "w4c"},
+					{"label": "witch.w4x.choice-2", "next": "w5d"},
+				],
+			},
+			"w4c": {
+				"text": "witch.w4c",
+				"choices": [
+					{"label": "ui.continue", "next": "e1"},
 				],
 			},
 			"w5a": {
 				"text": "witch.w5a",
 				"choices": [
-					{"label": "ui.continue", "next": "e3"},
+					{"label": "witch.w5a.choice-1", "next": "e1"},
+					{"label": "witch.w5a.choice-2", "next": "w6a"},
 				],
 			},
 			"w5b": {
 				"text": "witch.w5b",
 				"choices": [
-					{"label": "witch.w5b.choice-1", "next": "e4"},
+					{"label": "witch.w5b.choice-1", "next": "e1"},
+					{"label": "witch.w5b.choice-2", "next": "w6"},
+				],
+			},
+			"w5d": {
+				"text": "witch.w5d",
+				"choices": [
+					{"label": "witch.w5b.choice-1", "next": "e1"},
 					{"label": "witch.w5b.choice-2", "next": "w6"},
 				],
 			},
@@ -194,25 +209,13 @@ var characters: Dictionary = {
 					{"label": "ui.continue", "next": "e5"},
 				],
 			},
+			"w6a": {
+				"text": "witch.w6a",
+				"choices": [
+					{"label": "ui.continue", "next": "e5"},
+				],
+			},
 			"e1": {
-				"text": "witch.e1",
-				"scene": "res://assets/witch_failed.png",
-				"scene_back": "res://assets/witch_room.png",
-				"choices": [],
-			},
-			"e2": {
-				"text": "witch.e1",
-				"scene": "res://assets/witch_failed.png",
-				"scene_back": "res://assets/witch_room.png",
-				"choices": [],
-			},
-			"e3": {
-				"text": "witch.e1",
-				"scene": "res://assets/witch_failed.png",
-				"scene_back": "res://assets/witch_room.png",
-				"choices": [],
-			},
-			"e4": {
 				"text": "witch.e1",
 				"scene": "res://assets/witch_failed.png",
 				"scene_back": "res://assets/witch_room.png",
