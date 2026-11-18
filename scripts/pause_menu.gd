@@ -4,6 +4,8 @@ extends CanvasLayer
 
 var _button: Button
 var _overlay: ColorRect
+var _title: Label
+var _resume_button: Button
 
 
 func _ready() -> void:
@@ -39,15 +41,16 @@ func _ready() -> void:
 	box.add_theme_constant_override("separation", 14)
 	center.add_child(box)
 
-	var title := Label.new()
-	title.text = "Paused"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 36)
-	box.add_child(title)
+	_title = Label.new()
+	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_title.add_theme_font_size_override("font_size", 36)
+	box.add_child(_title)
 
-	box.add_child(_make_menu_button("Resume", _resume))
+	_resume_button = _make_menu_button("Resume", _resume)
+	box.add_child(_resume_button)
 	box.add_child(_make_menu_button("Restart", _restart))
 	box.add_child(_make_menu_button("Exit", _exit_game))
+	_set_ending_mode(false)
 
 
 func _make_menu_button(text: String, on_pressed: Callable) -> Button:
@@ -76,10 +79,24 @@ func _process(_delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") and (_overlay.visible or _button.visible):
 		if _overlay.visible:
-			_resume()
+			if _resume_button.visible:
+				_resume()
+			else:
+				return
 		else:
 			_pause()
 		get_viewport().set_input_as_handled()
+
+
+## The closing screen: like the pause screen, but the only way forward is Restart.
+func show_ending() -> void:
+	_set_ending_mode(true)
+	_pause()
+
+
+func _set_ending_mode(ending: bool) -> void:
+	_title.text = "The End" if ending else "Paused"
+	_resume_button.visible = not ending
 
 
 func _pause() -> void:
@@ -93,6 +110,7 @@ func _resume() -> void:
 
 
 func _restart() -> void:
+	_set_ending_mode(false)
 	_resume()
 	GameState.reset_state()
 	SceneTransition.change_scene(GameState.MENU_SCENE)

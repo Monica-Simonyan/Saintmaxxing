@@ -63,7 +63,7 @@ func _ready() -> void:
 	resized.connect(_place_tags)
 	_place_tags()
 	if GameState.all_conversations_completed():
-		_show_scroll(_compose_news())
+		_show_scroll(_compose_news(), SCROLL_TEXTURE, PauseMenu.show_ending)
 	elif not GameState.map_intro_shown:
 		GameState.map_intro_shown = true
 		_show_scroll(INTRO_TEXT, INTRO_SCROLL_TEXTURE)
@@ -87,14 +87,16 @@ func _compose_news() -> String:
 	return "\n".join(paragraphs)
 
 
-## Dims the map and unrolls a scroll with the given text; a click outside the scroll dismisses it.
-func _show_scroll(text: String, texture: Texture2D = SCROLL_TEXTURE) -> void:
+## Dims the map and unrolls a scroll with the given text; a click outside the scroll dismisses it and then runs on_dismiss.
+func _show_scroll(text: String, texture: Texture2D = SCROLL_TEXTURE, on_dismiss: Callable = Callable()) -> void:
 	var overlay := ColorRect.new()
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	overlay.color = Color(0.05, 0.03, 0.08, 0.55)
 	overlay.gui_input.connect(func(event: InputEvent) -> void:
 		if event is InputEventMouseButton and event.pressed:
-			overlay.queue_free())
+			overlay.queue_free()
+			if on_dismiss.is_valid():
+				on_dismiss.call())
 	add_child(overlay)
 
 	var scroll := TextureRect.new()
