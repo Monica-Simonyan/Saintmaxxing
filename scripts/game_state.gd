@@ -73,8 +73,8 @@ var characters: Dictionary = {
 			"n9": {
 				"text": "priest.n9",
 				"choices": [
-					{"label": "priest.n9.choice-1", "next": "n13"},
-					{"label": "priest.n9.choice-2", "next": "n14"},
+					{"label": "priest.n8.choice-1", "next": "n13"},
+					{"label": "priest.n8.choice-2", "next": "n14"},
 				],
 			},
 			"n13": {
@@ -201,19 +201,19 @@ var characters: Dictionary = {
 				"choices": [],
 			},
 			"e2": {
-				"text": "witch.e2",
+				"text": "witch.e1",
 				"scene": "res://assets/witch_failed.png",
 				"scene_back": "res://assets/witch_room.png",
 				"choices": [],
 			},
 			"e3": {
-				"text": "witch.e3",
+				"text": "witch.e1",
 				"scene": "res://assets/witch_failed.png",
 				"scene_back": "res://assets/witch_room.png",
 				"choices": [],
 			},
 			"e4": {
-				"text": "witch.e4",
+				"text": "witch.e1",
 				"scene": "res://assets/witch_failed.png",
 				"scene_back": "res://assets/witch_room.png",
 				"choices": [],
@@ -261,8 +261,8 @@ var characters: Dictionary = {
 			"n3": {
 				"text": "vampire.n3",
 				"choices": [
-					{"label": "vampire.n3.choice-1", "next": "n4"},
-					{"label": "vampire.n3.choice-2", "next": "n4"},
+					{"label": "witch.w2.choice-1", "next": "n4"},
+					{"label": "witch.w2.choice-2", "next": "n4"},
 				],
 			},
 			"n4": {
@@ -311,7 +311,7 @@ var characters: Dictionary = {
 				"choices": [],
 			},
 			"e2": {
-				"text": "vampire.e2",
+				"text": "vampire.e1",
 				"scene": "res://assets/vampire_prisoner.png",
 				"scene_back": "res://assets/vampire_room.png",
 				"choices": [],
@@ -362,8 +362,8 @@ var characters: Dictionary = {
 			"n6": {
 				"text": "harlot.n6",
 				"choices": [
-					{"label": "harlot.n6.choice-1", "next": "n11"},
-					{"label": "harlot.n6.choice-2", "next": "n11"},
+					{"label": "harlot.n4.choice-1", "next": "n11"},
+					{"label": "harlot.n4.choice-2", "next": "n11"},
 				],
 			},
 			"n11": {
@@ -436,7 +436,7 @@ var characters: Dictionary = {
 				],
 			},
 			"n28": {
-				"text": "harlot.n28",
+				"text": "harlot.n32",
 				"scene": "res://assets/brothel_failed.png",
 				"scene_back": "res://assets/brothel_pure.png",
 				"choices": [
@@ -451,51 +451,51 @@ var characters: Dictionary = {
 			"n35": {
 				"text": "harlot.n35",
 				"choices": [
-					{"label": "harlot.n35.choice-1", "next": "n37"},
-					{"label": "harlot.n35.choice-2", "next": "n40"},
+					{"label": "harlot.n17.choice-1", "next": "n37"},
+					{"label": "harlot.n17.choice-2", "next": "n40"},
 				],
 			},
 			"n37": {
-				"text": "harlot.n37",
+				"text": "harlot.n19",
 				"choices": [
 					{"label": "ui.continue", "next": "n38"},
 				],
 			},
 			"n40": {
-				"text": "harlot.n40",
+				"text": "harlot.n22",
 				"choices": [
-					{"label": "harlot.n40.choice-1", "next": "n42"},
-					{"label": "harlot.n40.choice-2", "next": "n45"},
+					{"label": "harlot.n22.choice-1", "next": "n42"},
+					{"label": "harlot.n22.choice-2", "next": "n45"},
 				],
 			},
 			"n38": {
-				"text": "harlot.n38",
+				"text": "harlot.n20",
 				"scene": "res://assets/brothel_failed.png",
 				"scene_back": "res://assets/brothel_pure.png",
 				"choices": [
 				],
 			},
 			"n42": {
-				"text": "harlot.n42",
+				"text": "harlot.n24",
 				"choices": [
 					{"label": "ui.continue", "next": "n43"},
 				],
 			},
 			"n45": {
-				"text": "harlot.n45",
+				"text": "harlot.n27",
 				"choices": [
 					{"label": "ui.continue", "next": "n46"},
 				],
 			},
 			"n43": {
-				"text": "harlot.n43",
+				"text": "harlot.n25",
 				"converted": true,
 				"scene": "res://assets/brothel_pure.png",
 				"choices": [
 				],
 			},
 			"n46": {
-				"text": "harlot.n46",
+				"text": "harlot.n32",
 				"scene": "res://assets/brothel_failed.png",
 				"scene_back": "res://assets/brothel_pure.png",
 				"choices": [
