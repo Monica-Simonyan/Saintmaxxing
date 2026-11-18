@@ -79,6 +79,11 @@ func _show_delta_popups() -> void:
 	var deltas := _pending_changes.duplicate()
 	_pending_changes.clear()
 	await get_tree().process_frame  # let the freshly shown row lay out
+	var values: Array = deltas.values()
+	if values.any(func(delta: int) -> bool: return delta > 0):
+		Audio.play_stat_change(true)
+	if values.any(func(delta: int) -> bool: return delta < 0):
+		Audio.play_stat_change(false)
 	for stat_id in deltas:
 		var delta: int = deltas[stat_id]
 		var box := _stat_boxes[stat_id] as Control

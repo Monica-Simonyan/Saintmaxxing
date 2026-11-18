@@ -3,6 +3,8 @@ extends Node
 
 const MUSIC: AudioStream = preload("res://assets/audio/exploration.wav")
 const CLICK: AudioStream = preload("res://assets/audio/menu_click.wav")
+const STAT_UP: AudioStream = preload("res://assets/audio/magical_1.ogg")
+const STAT_DOWN: AudioStream = preload("res://assets/audio/magical_4.ogg")
 
 var _music_player: AudioStreamPlayer
 var _click_player: AudioStreamPlayer
@@ -31,6 +33,15 @@ func _process(_delta: float) -> void:
 
 func play_click() -> void:
 	_click_player.play()
+
+
+## One chime per direction, so several stats moving together don't stack the same sound.
+func play_stat_change(increased: bool) -> void:
+	var player := AudioStreamPlayer.new()
+	player.stream = STAT_UP if increased else STAT_DOWN
+	player.finished.connect(player.queue_free)
+	add_child(player)
+	player.play()
 
 
 func _on_node_added(node: Node) -> void:
