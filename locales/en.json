@@ -155,6 +155,7 @@
  "vampire.quest-intro": "Placeholder: the vampire's quest goes here.",
  "vampire.quest-scroll": "Placeholder: the vampire's hint scroll goes here.",
  "harlot.quest-intro": "Rose asks you to dress one of her maidens in nice and appealing clothing, to continue chatting with her",
- "harlot.quest-scroll": "Placeholder: Rose's hint scroll goes here.",
- "ui.finish": "Finish"
+ "harlot.quest-scroll": "Oh, fabulous! You added your own touch and didn’t let her rot in her old clothes. You impressed Rose quite a bit.\n\nThus, I will whisper you a few words.\n\nShe, the beauty and bloom of the town, spreads love. But she has a passion for good gold.",
+ "ui.finish": "Finish",
+ "harlot.quest-scroll-bare": "Really? Not even a touch of your own on her? Rose is quite disappointed. Very well, we may continue. I was going to give you a hint, but I changed my mind."
 }

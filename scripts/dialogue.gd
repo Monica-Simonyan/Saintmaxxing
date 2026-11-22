@@ -301,7 +301,9 @@ func _start_quest() -> void:
 
 ## Unrolls the character's scroll over the won game; dismissing it returns to the conversation.
 func _show_quest_reward(game: QuestOverlay) -> void:
-	var key: String = GameState.get_selected_character().get("quest_scroll", "")
+	var key: String = game.reward_scroll_key()
+	if key.is_empty():
+		key = GameState.get_selected_character().get("quest_scroll", "")
 	var scroll := StoryScroll.new(func() -> String: return Localization.t(key), "scroll.return")
 	scroll.dismissed.connect(func() -> void:
 		scroll.queue_free()

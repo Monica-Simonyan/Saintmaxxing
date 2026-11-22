@@ -3,18 +3,13 @@ extends QuestOverlay
 ## Stand-in mini-game for characters whose real quest isn't built yet: a dim backdrop and a
 ## button that wins immediately. Replace a character's `hint_game` to swap it out.
 
-const DIM_COLOR: Color = Color(0.2, 0.2, 0.2, 0.75)
 const BUTTON_FONT_SIZE: int = 28
 const BUTTON_BOTTOM_MARGIN: int = 24
 
 
 func _ready() -> void:
 	super()
-	var dim := ColorRect.new()
-	dim.color = DIM_COLOR
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(dim)
+	_add_backdrop(DIM_COLOR)
 
 	var button := Button.new()
 	button.text = Localization.t("ui.continue")

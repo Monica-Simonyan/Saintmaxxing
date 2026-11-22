@@ -20,25 +20,20 @@ const ITEMS: Array[Dictionary] = [
 const CANVAS_RATIO: float = 16.0 / 9.0  # every layer PNG is a 1920x1080 canvas
 const STAGE_CENTER: float = 0.3  # horizontal centre of the maiden, as a fraction of the screen
 const PANEL_LEFT: float = 0.58  # where the clothes panel starts, as a fraction of the screen width
-const DIM_COLOR: Color = Color(0.2, 0.2, 0.2, 0.75)
-const GRID_COLUMNS: int = 4
+const GRID_COLUMNS: int = 2
 const ITEM_SIZE: Vector2 = Vector2(108, 108)
 const GRID_GAP: int = 10
 const FINISH_FONT_SIZE: int = 28
 const PANEL_MARGIN: int = 24
 
-var _worn: Dictionary = {}  # slot -> item name
+var _touched: bool = false  # whether the player changed her outfit at all
 var _slot_layers: Dictionary = {}  # slot -> TextureRect
 var _item_buttons: Dictionary = {}  # item name -> Button
 
 
 func _ready() -> void:
 	super()
-	var dim := ColorRect.new()
-	dim.color = DIM_COLOR
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(dim)
+	_add_backdrop(DIM_COLOR)
 	_build_stage()
 	_build_panel()
 	for slot in DEFAULT_OUTFIT:
@@ -79,13 +74,15 @@ func _build_panel() -> void:
 	panel.offset_bottom = -PANEL_MARGIN
 	add_child(panel)
 
+	var middle := CenterContainer.new()
+	middle.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.add_child(middle)
+
 	var grid := GridContainer.new()
 	grid.columns = GRID_COLUMNS
 	grid.add_theme_constant_override("h_separation", GRID_GAP)
 	grid.add_theme_constant_override("v_separation", GRID_GAP)
-	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	panel.add_child(grid)
+	middle.add_child(grid)
 	for item in ITEMS:
 		grid.add_child(_make_item_button(item))
 
@@ -109,16 +106,17 @@ func _make_item_button(item: Dictionary) -> Button:
 	return button
 
 
+func reward_scroll_key() -> String:
+	return "harlot.quest-scroll" if _touched else "harlot.quest-scroll-bare"
+
+
 func _on_item_toggled(pressed: bool, item: Dictionary) -> void:
-	if pressed:
-		_wear(item.slot, item.name)
-	else:
-		_wear(item.slot, "")
+	_touched = true
+	_wear(item.slot, item.name if pressed else "")
 
 
 ## Puts `item_name` on `slot` (or strips the slot when empty) and syncs the grid highlights.
 func _wear(slot: StringName, item_name: String) -> void:
-	_worn[slot] = item_name
 	_slot_layers[slot].texture = load(ASSET_DIR + item_name + ".png") if not item_name.is_empty() else null
 	for item in ITEMS:
 		if item.slot == slot:

@@ -8,6 +8,7 @@ extends Control
 signal won
 
 const RETRY_FONT_SIZE: int = 28
+const DIM_COLOR: Color = Color(0.2, 0.2, 0.2, 0.75)
 
 var _retry_button: Button
 
@@ -21,6 +22,21 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	StatsHud.set_forced_hidden(false)
+
+
+## Fills the overlay with a flat colour; clicks still hit the overlay itself, not the dialogue below.
+func _add_backdrop(color: Color) -> ColorRect:
+	var backdrop := ColorRect.new()
+	backdrop.color = color
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(backdrop)
+	return backdrop
+
+
+## Locale key of the scroll shown on a win; empty uses the character's `quest_scroll`.
+func reward_scroll_key() -> String:
+	return ""
 
 
 func _offer_retry() -> void:

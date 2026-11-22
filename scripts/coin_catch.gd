@@ -29,7 +29,6 @@ const BOOST_START_MIN: float = 0.3  # share of the screen crossed before the spe
 const BOOST_START_MAX: float = 0.6
 const REACTION_TIME: float = 0.3
 const REACH_SLACK: float = 0.8
-const DIM_COLOR: Color = Color(0.2, 0.2, 0.2, 0.75)
 const MISS_COLOR: Color = Color("6D0F1C")
 const MISS_FLASH_SECONDS: float = 0.6
 const MOUTH_MARGIN: float = 0.1  # fraction of the sack width ignored on each side of its opening
@@ -56,11 +55,7 @@ func _ready() -> void:
 	super()
 	clip_contents = true
 
-	_dim = ColorRect.new()
-	_dim.color = DIM_COLOR
-	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_dim)
+	_dim = _add_backdrop(DIM_COLOR)
 
 	_sack = TextureRect.new()
 	_sack.texture = SACK_TEXTURE

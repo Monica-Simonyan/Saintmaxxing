@@ -22,11 +22,7 @@ var _hud: QuestHud
 
 func _ready() -> void:
 	super()
-	var background := ColorRect.new()
-	background.color = BACKGROUND_COLOR
-	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(background)
+	_add_backdrop(BACKGROUND_COLOR)
 
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

@@ -4,8 +4,8 @@ extends CanvasLayer
 ## control, popup or pause overlay can ever swap it for a system cursor.
 
 const CURSOR_PATH: String = "res://assets/ui/cursor.png"
-const CURSOR_SIZE: Vector2 = Vector2(100, 100)
-const CURSOR_HOTSPOT: Vector2 = Vector2(11, 6)  # the horn tip inside the image
+const CURSOR_SIZE: Vector2 = Vector2(75, 75)
+const CURSOR_HOTSPOT: Vector2 = Vector2(8.25, 4.5)  # the horn tip inside the image (11, 6 at 100 px)
 const EMIT_HOLD_SECONDS: float = 0.06
 
 var _horn: TextureRect
