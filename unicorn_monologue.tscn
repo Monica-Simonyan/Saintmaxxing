@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://bvqk3yl8xmn5d"]
+[gd_scene format=3 uid="uid://c55arypphkv3b"]
 
 [ext_resource type="Script" uid="uid://c8mxvt3n7qf2p" path="res://scripts/unicorn_monologue.gd" id="1_monologue"]
 
@@ -30,10 +30,10 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HairPanel" unique_id=1261626855]
-vertical_scroll_mode = 3
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+vertical_scroll_mode = 3
 
 [node name="LinesContainer" type="VBoxContainer" parent="HairPanel/ScrollContainer" unique_id=1043467921]
 layout_mode = 2

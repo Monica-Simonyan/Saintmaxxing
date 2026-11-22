@@ -1,8 +1,6 @@
-[gd_scene format=3 uid="uid://ckrm5rf5mxv"]
+[gd_scene format=3 uid="uid://bhabwd5st3j8j"]
 
 [ext_resource type="Script" uid="uid://brxv3dc0fh25r" path="res://scripts/menu.gd" id="1_menu"]
-[ext_resource type="Texture2D" uid="uid://b1u06chus0irn" path="res://assets/unicorn.png" id="2_ouk20"]
-[ext_resource type="Texture2D" path="res://assets/menu_background.png" id="3_background"]
 
 [node name="Root" type="Control" unique_id=842453889]
 layout_mode = 3
@@ -21,7 +19,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = ExtResource("3_background")
 expand_mode = 1
 stretch_mode = 6
 
@@ -35,7 +32,6 @@ offset_top = -679.0
 offset_right = 1011.0
 grow_vertical = 0
 mouse_filter = 2
-texture = ExtResource("2_ouk20")
 expand_mode = 1
 stretch_mode = 4
 

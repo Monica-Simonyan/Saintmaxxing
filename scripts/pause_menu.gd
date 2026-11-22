@@ -3,6 +3,7 @@ extends CanvasLayer
 ## Hidden on the menu and the unicorn monologue.
 
 var _button: Button
+var _back_button: Button
 var _overlay: ColorRect
 var _title: Label
 var _resume_button: Button
@@ -16,18 +17,8 @@ func _ready() -> void:
 	layer = 101
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
-	_button = Button.new()
-	_button.text = "II"
-	_button.custom_minimum_size = Vector2(40, 40)
-	_button.position = Vector2(16, 10)
-	_button.pressed.connect(_pause)
-	_button.add_theme_stylebox_override("normal", _beige_style(Color(0.91, 0.84, 0.70)))
-	_button.add_theme_stylebox_override("hover", _beige_style(Color(0.96, 0.90, 0.78)))
-	_button.add_theme_stylebox_override("pressed", _beige_style(Color(0.82, 0.74, 0.60)))
-	_button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	for color_name in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
-		_button.add_theme_color_override(color_name, Color(0.30, 0.20, 0.12))
-	add_child(_button)
+	_back_button = _make_corner_button("←", Vector2(16, 10), _go_back)
+	_button = _make_corner_button("II", Vector2(64, 10), _pause)
 
 	_overlay = ColorRect.new()
 	_overlay.color = Color(0.25, 0.25, 0.25, 0.8)
@@ -79,6 +70,22 @@ func _make_menu_button(on_pressed: Callable) -> Button:
 	return button
 
 
+func _make_corner_button(label: String, pos: Vector2, on_pressed: Callable) -> Button:
+	var button := Button.new()
+	button.text = label
+	button.custom_minimum_size = Vector2(40, 40)
+	button.position = pos
+	button.pressed.connect(on_pressed)
+	button.add_theme_stylebox_override("normal", _beige_style(Color(0.91, 0.84, 0.70)))
+	button.add_theme_stylebox_override("hover", _beige_style(Color(0.96, 0.90, 0.78)))
+	button.add_theme_stylebox_override("pressed", _beige_style(Color(0.82, 0.74, 0.60)))
+	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	for color_name in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		button.add_theme_color_override(color_name, Color(0.30, 0.20, 0.12))
+	add_child(button)
+	return button
+
+
 func _beige_style(color: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = color
@@ -90,7 +97,9 @@ func _beige_style(color: Color) -> StyleBoxFlat:
 
 func _process(_delta: float) -> void:
 	var intro: bool = GameState.is_intro_scene()
-	_button.visible = not intro and not _overlay.visible
+	var in_quest: bool = not get_tree().get_nodes_in_group(GameState.QUEST_GROUP).is_empty()
+	_button.visible = not intro and not in_quest and not _overlay.visible
+	_back_button.visible = not _overlay.visible and (in_quest or (_button.visible and _in_scene(GameState.DIALOGUE_SCENE)))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -119,6 +128,7 @@ func _set_ending_mode(ending: bool) -> void:
 
 func _apply_language() -> void:
 	_button.tooltip_text = Localization.t("ui.pause")
+	_back_button.tooltip_text = Localization.t("ui.back")
 	_title.text = Localization.t("ui.the-end" if _ending else "ui.paused")
 	_resume_button.text = Localization.t("ui.resume")
 	_restart_button.text = Localization.t("ui.restart")
@@ -129,6 +139,16 @@ func _apply_language() -> void:
 		language_button.text = Localization.t("language." + code)
 		language_button.disabled = active
 		language_button.modulate.a = 1.0 if active else 0.6
+
+
+func _in_scene(path: String) -> bool:
+	var scene := get_tree().current_scene
+	return scene != null and scene.scene_file_path == path
+
+
+func _go_back() -> void:
+	var from_quest: bool = not get_tree().get_nodes_in_group(GameState.QUEST_GROUP).is_empty()
+	SceneTransition.change_scene(GameState.DIALOGUE_SCENE if from_quest else GameState.MAP_SCENE)
 
 
 func _pause() -> void:

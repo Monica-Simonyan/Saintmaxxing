@@ -3,7 +3,7 @@ extends CanvasLayer
 ## The horn is drawn by the game on the top layer while the OS cursor is hidden, so no
 ## control, popup or pause overlay can ever swap it for a system cursor.
 
-const CURSOR_PATH: String = "res://assets/cursor.png"
+const CURSOR_PATH: String = "res://assets/ui/cursor.png"
 const CURSOR_SIZE: Vector2 = Vector2(100, 100)
 const CURSOR_HOTSPOT: Vector2 = Vector2(11, 6)  # the horn tip inside the image
 const EMIT_HOLD_SECONDS: float = 0.06

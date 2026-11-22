@@ -45,7 +45,7 @@ func _place_hair_panel() -> void:
 func _drift_unicorn_in() -> void:
 	var view_w: float = get_viewport_rect().size.x
 	var drifter := TextureRect.new()
-	drifter.texture = load("res://assets/unicorn_hair.png") as Texture2D
+	drifter.texture = load("res://assets/characters/unicorn/unicorn_hair.png") as Texture2D
 	drifter.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	drifter.stretch_mode = TextureRect.STRETCH_SCALE
 	drifter.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -175,4 +175,4 @@ func _finish_monologue() -> void:
 
 
 func _on_continue() -> void:
-	SceneTransition.change_scene(GameState.CHARACTERS_SCENE)
+	SceneTransition.change_scene(GameState.MAP_SCENE)

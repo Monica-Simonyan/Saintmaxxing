@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://bbkn0gjsls1mf"]
+[gd_scene format=3 uid="uid://bh6ll308iavjh"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.11, 0.1, 0.14, 0.96)
@@ -158,6 +158,10 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.84, 0.69, 0.36, 1)
 theme_override_font_sizes/font_size = 14
 text = "Name"
+
+[node name="Node" type="Node" parent="MarginContainer/VBoxContainer/ContentRow/PortraitCard/PortraitMargin/PortraitVBox/CharacterNameLabel" unique_id=1738098417]
+
+[node name="Node" type="Node" parent="MarginContainer/VBoxContainer/ContentRow/PortraitCard/PortraitMargin/PortraitVBox/CharacterNameLabel/Node" unique_id=219613997]
 
 [node name="CharacterSummaryLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentRow/PortraitCard/PortraitMargin/PortraitVBox" unique_id=504850363]
 custom_minimum_size = Vector2(100, 0)

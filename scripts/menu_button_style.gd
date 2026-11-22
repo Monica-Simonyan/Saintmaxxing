@@ -1,7 +1,7 @@
 class_name MenuButtonStyle
 ## Gives a Button the hand-drawn pink look used by every menu button.
 
-const TEXTURE: Texture2D = preload("res://assets/menu_button.png")
+const TEXTURE: Texture2D = preload("res://assets/ui/menu_button.png")
 const TEXT_COLOR: Color = Color(0.45, 0.2, 0.2)
 const HOVER_TINT: Color = Color(1.06, 1.0, 0.96)
 const PRESSED_TINT: Color = Color(0.9, 0.82, 0.82)

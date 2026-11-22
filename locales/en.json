@@ -4,6 +4,8 @@
  "ui.the-end": "The End",
  "ui.resume": "Resume",
  "ui.restart": "Restart",
+ "ui.hint-ready": "Defeat the quest to regain your right to speak",
+ "ui.back": "Back",
  "ui.exit": "Exit",
  "ui.continue": "[Continue]",
  "language.en": "English",
@@ -142,5 +144,17 @@
  "witch.w5a.choice-1": "Warmth? You chain a man in your cellar!",
  "witch.w5a.choice-2": "I did not come to judge you, Ashoka. Tell me about the one in chains.",
  "witch.w5d": "*She is silent for a long moment.* Understand? No one has asked me that in a hundred years. *The chains rattle below.* He is all I have left.",
- "witch.w6a": "*Her voice cracks.* He was the first man I ever loved. I bound him so he could never leave. *She looks away.* Perhaps a love that chains is no love at all."
+ "witch.w6a": "*Her voice cracks.* He was the first man I ever loved. I bound him so he could never leave. *She looks away.* Perhaps a love that chains is no love at all.",
+ "scroll.return": "Click to return",
+ "witch.quest-scroll": "Deep in her shelter, the twisted witch hides a stack of healing potions. Rough on the outside, fragile within, she searches for her true self, and for someone who will see past the cruel horns and believe in her.",
+ "witch.quest-intro": "Ahsoka's deadly cards have been scattered under her shelves for ages. Find all matching triplets to break their spells.",
+ "priest.quest-intro": "The priest asks you to collect donations from the poor. Lose fewer than 3 coins to continue your lovely talk.",
+ "ui.start-quest": "Start the quest",
+ "ui.retry": "Retry",
+ "priest.quest-scroll": "The greedy priest hides a deep, trembling fear of his Lord. Behind the veil and the feasts, he lies awake at night, knowing every coin he steals is counted somewhere above. Approach him too boldly, and he will only flee deeper into his lies. But come to him carefully, with patience and mercy, and he may finally stop running from the truth and turn toward the good.",
+ "vampire.quest-intro": "Placeholder: the vampire's quest goes here.",
+ "vampire.quest-scroll": "Placeholder: the vampire's hint scroll goes here.",
+ "harlot.quest-intro": "Rose asks you to dress one of her maidens in nice and appealing clothing, to continue chatting with her",
+ "harlot.quest-scroll": "Placeholder: Rose's hint scroll goes here.",
+ "ui.finish": "Finish"
 }

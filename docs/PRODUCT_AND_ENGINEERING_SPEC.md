@@ -97,30 +97,38 @@ Dialogue is a directed graph per character. Some choices lead to a failure or ea
 ```
 project.godot            settings and autoloads
 export_presets.cfg       presets: Windows Desktop, Web, macOS
-menu.tscn                main menu
-unicorn_monologue.tscn   opening monologue
-characters.tscn          town map
-dialogue.tscn            legacy dialogue scene (still referenced by the map as a fallback)
-brothel_dialogue.tscn    the generic dialogue scene used for all four characters
-scripts/                 all GDScript (about 2,200 lines)
+scenes/menu.tscn         main menu
+scenes/unicorn_monologue.tscn  opening monologue
+scenes/map.tscn          town map
+scenes/dialogue.tscn     the generic dialogue scene used for all four characters
+scripts/                 all GDScript (about 2,300 lines)
+scripts/data/character_data.gd  character and dialogue content (locale keys, art paths)
+scripts/hint_badge.gd    hint icon and tooltip shown in dialogues
+scripts/quest_overlay.gd  base class of the hint mini-games (HUD hiding, pause-menu group, retry button)
+scripts/quest_hud.gd     top-right readout shared by the mini-games (value plus optional hearts)
+scripts/quest_intro_popup.gd  the unicorn's cloud that explains a quest before it starts
+scripts/card_matching_quest.gd, quest_card.gd  witch mini-game
+scripts/coin_catch.gd    priest mini-game
+scripts/story_scroll.gd  scroll overlay shared by the map and quest rewards
+scripts/cloud_label.gd   label style used inside speech clouds
 shaders/hair_fade.gdshader  mane fade on the monologue
 themes/                  default Godot theme
 locales/en.json, ru.json translation tables
-assets/                  art, fonts, audio, stat icons
+assets/characters/<name>/  per-character art; assets/map, assets/ui (with stats/), fonts, audio
 docs/                    this spec and CHARACTER_DIALOGUE_SPEC.md
 build/                   export output (gitignored, with .gdignore)
 ```
 
 ## 2.3 Scene flow
 
-`menu` -> `unicorn_monologue` -> `characters` (map) <-> `brothel_dialogue` (one scene, driven by data). Every change goes through `SceneTransition.change_scene()`, which fades out, swaps, and fades in.
+`menu` -> `unicorn_monologue` -> `map` <-> `dialogue` (one scene, driven by data). Every change goes through `SceneTransition.change_scene()`, which fades out, swaps, and fades in.
 
 ## 2.4 Autoloads
 
 | Autoload | Responsibility |
 |---|---|
 | `Localization` | Loads `locales/*.json`, `t(key)` lookup with English fallback, `set_language()`, persists the choice to `user://settings.cfg`, emits `language_changed`, and sets Cyrillic fallback fonts. |
-| `GameState` | All game data and state: `stats`, `completed_conversations`, `selected_character_id`, `map_intro_shown`, and the `characters` registry (dialogue graphs, art paths, layout rects, effects). API: `change_stat`, `finish_conversation(outcome)`, `select_character`, `reset_state`, `all_conversations_completed`, `is_intro_scene`. Signal `stat_changed(stat_id, value, applied_delta)`. |
+| `GameState` | Game state and scene paths: `stats`, `completed_conversations`, `selected_character_id`, `map_intro_shown`, and the `characters` registry, copied from `CharacterData.ALL` (dialogue graphs, art paths, layout rects, effects). API: `change_stat`, `finish_conversation(outcome)`, `select_character`, `reset_state`, `all_conversations_completed`, `is_intro_scene`. Signal `stat_changed(stat_id, value, applied_delta)`. |
 | `SceneTransition` | Fade overlay and scene swapping. |
 | `Cursor` | Top layer (128) unicorn-horn cursor and a `CPUParticles2D` trail, processing only while the mouse moves. |
 | `Audio` | Looping music, click sound on every `BaseButton` (hooked through `node_added`), stat up/down effects. Music pauses with the tree. |
@@ -140,13 +148,17 @@ dialogue: { node_id: { text: key, choices: [{label: key, next: node_id}],
 
 - A node with empty `choices` is an ending. `converted: true` selects the converting effects, otherwise the spared effects are applied.
 - `finish_conversation` is idempotent per character: it marks completion and applies effects once.
-- All displayed text is a locale key. Adding a character means adding data in `game_state.gd`, strings to both JSON files, and art. No new scenes or scripts.
+- All displayed text is a locale key. Adding a character means adding data in `scripts/data/character_data.gd`, strings to both JSON files, and art. No new scenes or scripts.
 
 ## 2.6 Key behaviours
 
-- **Map** (`characters.gd`): builds the background, creates a styled tag button per character at `map_pos`, hover scale 1.08, and tags of completed characters are inert. Shows the intro scroll once per run and the news scroll once all four are done. Scroll closes on a click outside it or on the hint.
+- **Map** (`map.gd`): builds the background, creates a styled tag button per character at `map_pos`, hover scale 1.08, and tags of completed characters are inert. Shows the intro scroll once per run and the news scroll once all four are done. Scroll closes on a click outside it or on the hint.
 - **News** (`_compose_news`): for stats in the order Justice, Faith, Magic, Love, add the up or down paragraph when the stat differs from 50.
-- **Dialogue** (`brothel_dialogue.gd`): builds the UI in code from character data: background and layers, NPC cloud, mirrored choices cloud, unicorn, outcome panel, sparkle effect. Clouds auto-size to the text. Ending nodes wash in a full-screen scene with outcome text, then return to the map on click.
+- **Dialogue** (`dialogue.gd`): builds the UI in code from character data: background and layers, NPC cloud, mirrored choices cloud, unicorn, outcome panel, sparkle effect. Clouds auto-size to the text. Ending nodes wash in a full-screen scene with outcome text, then return to the map on click.
+- **Hint mini-games:** a starred hint icon appears on a line with a `helps` choice until the character's quest is complete. While it shows, the choices cloud is replaced by a lock (click for the "Defeat the quest" note) and number keys are ignored. Clicking the icon opens `QuestIntroPopup` (`quest_intro` text), whose button starts the game named by `hint_game` (`"coins"`, `"cards"`, `"dress"` or the `"placeholder"` stand-in). Both games extend `QuestOverlay`, are added over the dialogue and emit `won`. The dialogue then shows the character's `quest_scroll`; dismissing it closes the game, calls `GameState.complete_quest` and redraws the line with the choices. The back button during a game returns to the dialogue (saved progress resumes); restarting the game clears everything.
+  - **Card Matching Quest (witch):** 3x4 face-down grid from `GameState.get_quest_deck()` (shuffled once per session, translucent brown background). Turning three cards is one turn; a matching set stays up, otherwise it flips back. The top-right counter shows turns used of `MAX_TURNS` (10). Using all turns without matching everything offers Retry, which spins the grid away and back with a fresh shuffle (`GameState.reshuffle_quest_deck`). State lives in `GameState.quest_up/quest_pending/quest_turns`.
+  - **Coin catch (priest):** 30 coins drop on a timer 1.5-3 s apart, never waiting for the previous coin to land (each takes 2-5 s to fall and is scheduled so the sack can always reach it after the previous catch; about a third fall slowly, then speed up 1.8-2.6x part-way down; never within a sack-width of the side edges) onto a sack moved with A/D or the arrow keys. A catch plays `coin_catch.mp3`; a miss flashes the overlay #6D0F1C, plays the negative stat sound and empties a heart. The third miss offers Retry; finishing all 30 coins wins.
+- **Scrolls** (`StoryScroll`): one overlay for the map intro and news and for quest rewards. Text shrinks to fit; a click anywhere or on the footer dismisses it.
 - **Text fitting** (`TextFit.shrink_to_fit`): steps the font down one size per frame until `get_content_height()` fits. This needs a frame per step because the label only lays out between frames.
 - **Localization:** `language_changed` makes every screen re-translate in place. The story and dialogue fonts lack Cyrillic glyphs, so Ruslan Display and Underdog are registered as fallbacks.
 - **Pause:** `get_tree().paused` while the overlay is open. Exit quits on desktop. On web it tries `window.close()` and otherwise returns to the menu.
@@ -182,9 +194,6 @@ Suggested additions: a headless script that walks every dialogue graph and asser
 
 ## 2.10 Known issues and technical debt
 
-- `dialogue.tscn` references `res://scripts/dialogue.gd`, which no longer exists. The import logs an error, but the map doesn't use that scene for the four current characters.
-- The file name `brothel_dialogue` is a historical leftover, since it serves every character.
-- Game data lives in code (`game_state.gd`, about 570 lines) rather than in resource or JSON files.
 - No save system, so a reload restarts the story.
 - Builds are not signed or notarized, and desktop releases are not built by CI.
 - The first web load downloads about 70 MB of build output.

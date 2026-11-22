@@ -3,10 +3,10 @@ extends CanvasLayer
 
 const ICON_SIZE: float = 30.0
 const STATS: Array[Dictionary] = [
-	{"id": "love", "icon": "res://assets/stats/love.png"},
-	{"id": "faith", "icon": "res://assets/stats/faith.png"},
-	{"id": "justice", "icon": "res://assets/stats/justice.png"},
-	{"id": "magic", "icon": "res://assets/stats/magic.png"},
+	{"id": "love", "icon": "res://assets/ui/stats/love.png"},
+	{"id": "faith", "icon": "res://assets/ui/stats/faith.png"},
+	{"id": "justice", "icon": "res://assets/ui/stats/justice.png"},
+	{"id": "magic", "icon": "res://assets/ui/stats/magic.png"},
 ]
 
 var _score_labels: Dictionary = {}

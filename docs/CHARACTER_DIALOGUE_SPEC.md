@@ -10,9 +10,9 @@ Follow this for every new character so they all behave and look alike.
 | Dialogue chart (HTML/graph, player vs NPC lines, endings) | `~/Downloads/harlot_chart.html` |
 | Map position of their house | `map_pos` |
 | Stat effects per outcome (from the design doc) | converting: -25 love, -15 justice; not converting: +25 love |
-| Scene art: one background plus optional layers | `brothel_pure/failed/couple.png` |
+| Scene art: one background plus optional layers | `harlot_pure/failed/couple.png` |
 
-## 2. Data (`scripts/game_state.gd`, `characters[id]`)
+## 2. Data (`scripts/data/character_data.gd`, `ALL[id]`)
 
 ```gdscript
 "brothel_worker": {
@@ -24,15 +24,20 @@ Follow this for every new character so they all behave and look alike.
 		"spared":    {"love": 25},
 	},
 	"start_node": "start",
-	"start_scene": "res://assets/brothel_pure.png",    # illustrated layout: background
-	"start_layers": ["res://assets/brothel_failed.png"],  # optional transparent layers over it
+	"start_scene": "res://assets/characters/harlot/harlot_pure.png",    # illustrated layout: background
+	"start_layers": ["res://assets/characters/harlot/harlot_failed.png"],  # optional transparent layers over it
 	"bubble_rect": Rect2(270, 20, 480, 190),   # optional: NPC cloud position
 	"choices_rect": Rect2(770, 40, 360, 270),  # optional: choices cloud position
 	"choices_opacity": 1.0,                    # optional
 	"outcome_on_top": false,             # true if the ending art sits low (priest)
+	"hint_game": "coins",                # optional: "coins", "cards", "dress" or "placeholder"; the starred hint opens that mini-game
+	"quest_intro": "priest.quest-intro", # locale key shown in the popup before the game starts
+	"quest_scroll": "priest.quest-scroll", # locale key of the scroll shown when the game is won
 	"dialogue": { ...nodes... },
 }
 ```
+
+A choice may carry `"helps": true`; a line with such a choice shows the starred hint (and, for characters with a `hint_game`, locks the choices) until the quest is won.
 
 Stats: `love`, `faith`, `justice`, `magic`. Outcome keys used so far: `converted`, `spared`.
 
@@ -47,8 +52,8 @@ All displayed text is a key into `locales/en.json` and `locales/ru.json` (looked
 },
 "n25": {                                  # ending: empty choices
 	"text": "harlot.n25",                    # narrated outcome shown over the full-screen scene
-	"scene": "res://assets/brothel_failed.png",        # optional full-screen art
-	"scene_back": "res://assets/brothel_pure.png",     # optional layer under `scene`
+	"scene": "res://assets/characters/harlot/harlot_failed.png",        # optional full-screen art
+	"scene_back": "res://assets/characters/harlot/harlot_pure.png",     # optional layer under `scene`
 	"converted": true,                                  # marks the converting outcome
 	"choices": [],
 },
@@ -66,7 +71,7 @@ Rules (taken from the chart):
 
 ## 4. Runtime flow
 
-1. Player clicks the character's tag on the map (`characters.gd`).
+1. Player clicks the character's tag on the map (`map.gd`).
 2. `GameState.select_character(id)` then `SceneTransition.change_scene(GameState.DIALOGUE_SCENE)`.
 3. Choices are clicked or picked with keys `1`-`9`.
 4. On an ending, `GameState.finish_conversation(outcome)` runs once: it locks the
@@ -77,7 +82,7 @@ Rules (taken from the chart):
 6. Finished characters' tags are dimmed and disabled. State is in memory only.
 7. No Back button and no Esc mid-conversation.
 
-## 5. Illustrated layout (`brothel_dialogue.tscn/.gd`)
+## 5. Illustrated layout (`dialogue.tscn/.gd`)
 
 - Background room, plus start layers on top (Rose, then the couple). Endings hide the
   layers and show `scene` over `scene_back`.

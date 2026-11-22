@@ -1,0 +1,62 @@
+[gd_scene format=3 uid="uid://ckrm5rf5mxv"]
+
+[ext_resource type="Script" uid="uid://brxv3dc0fh25r" path="res://scripts/menu.gd" id="1_menu"]
+[ext_resource type="Texture2D" uid="uid://b1u06chus0irn" path="res://assets/characters/unicorn/unicorn.png" id="2_ouk20"]
+[ext_resource type="Texture2D" path="res://assets/ui/menu_background.png" id="3_background"]
+
+[node name="Root" type="Control" unique_id=842453889]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="Background" type="TextureRect" parent="." unique_id=2082035606]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3_background")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="PortraitTexture" type="TextureRect" parent="." unique_id=159051694]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -679.0
+offset_right = 1011.0
+grow_vertical = 0
+mouse_filter = 2
+texture = ExtResource("2_ouk20")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1965170856]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer" unique_id=264438130]
+layout_mode = 2
+theme_override_constants/margin_left = 48
+theme_override_constants/margin_top = 44
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_bottom = 44
+
+[node name="PlayButton" type="Button" parent="CenterContainer/MarginContainer" unique_id=939024428]
+custom_minimum_size = Vector2(340, 72)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_default_cursor_shape = 2
+text = "Start the Adventure"

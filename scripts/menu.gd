@@ -1,6 +1,6 @@
 extends Control
 
-const UNICORN_TEXTURE: Texture2D = preload("res://assets/unicorn_hair.png")
+const UNICORN_TEXTURE: Texture2D = preload("res://assets/characters/unicorn/unicorn_hair.png")
 
 @onready var play_button: Button = $CenterContainer/MarginContainer/PlayButton
 @onready var unicorn: TextureRect = $PortraitTexture
