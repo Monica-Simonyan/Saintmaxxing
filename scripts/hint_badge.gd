@@ -4,7 +4,8 @@ extends Control
 signal pressed
 
 ## A question-mark icon on the left wall that flips into a starred one, with a tooltip, when a
-## helpful choice is on offer. Clickable only when starred (emits pressed); the tooltip closes on the next click anywhere.
+## hint is on offer: a helpful choice, or a finished quest that can be played on. Clickable only
+## when starred (emits pressed); the tooltip closes on the next click anywhere.
 
 const ICON: Texture2D = preload("res://assets/ui/hint.png")
 const READY_ICON: Texture2D = preload("res://assets/ui/hint_available.png")
@@ -15,7 +16,7 @@ const TIP_TEXT_COLOR: Color = Color(0.2, 0.05, 0.18)
 
 ## Whether the starred icon can be clicked (only when there is a quest to open).
 var clickable: bool = true
-var _ready_state: bool = false
+var _tip_key: String = ""  # locale key of the tooltip; empty while the plain icon shows
 var _icon: TextureRect
 var _tip: PanelContainer
 var _tip_label: Label
@@ -65,11 +66,17 @@ func _ready() -> void:
 	_apply_language()
 
 
-## Switches between the plain and starred icon; the tooltip follows a flip to the starred one.
-func set_ready(is_ready: bool, animate: bool) -> void:
-	if is_ready == _ready_state:
+## Shows the starred icon with the tooltip `tip_key` names, or the plain icon when it is empty.
+## The tooltip opens when the star flips in, and again whenever `animate` is set on a starred icon.
+func show_hint(tip_key: String, animate: bool) -> void:
+	var was_ready: bool = not _tip_key.is_empty()
+	var is_ready: bool = not tip_key.is_empty()
+	_tip_key = tip_key
+	_apply_language()
+	if was_ready == is_ready:
+		if is_ready and animate:
+			_show_tip()
 		return
-	_ready_state = is_ready
 	_icon.mouse_filter = Control.MOUSE_FILTER_STOP if is_ready and clickable else Control.MOUSE_FILTER_IGNORE
 	_icon.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if is_ready and clickable else Control.CURSOR_ARROW
 	_hide_tip()
@@ -94,12 +101,12 @@ func _input(event: InputEvent) -> void:
 
 
 func _on_icon_input(event: InputEvent) -> void:
-	if _ready_state and clickable and event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+	if not _tip_key.is_empty() and clickable and event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		pressed.emit()
 
 
 func _apply_language() -> void:
-	_tip_label.text = Localization.t("ui.hint-ready")
+	_tip_label.text = Localization.t(_tip_key) if not _tip_key.is_empty() else ""
 
 
 func _show_tip() -> void:

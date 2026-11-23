@@ -23,6 +23,8 @@ var _hud: QuestHud
 
 func _ready() -> void:
 	super()
+	if GameState.is_quest_complete(GameState.selected_character_id):
+		GameState.reshuffle_quest_deck()  # a replay starts from a fresh deck
 	_add_backdrop(BACKGROUND_COLOR)
 
 	var center := CenterContainer.new()
@@ -104,7 +106,7 @@ func _on_card_clicked(card: QuestCard) -> void:
 		await _resolve_attempt()
 	_save_state()
 	if _cards.all(func(c: QuestCard) -> bool: return c.face_up):
-		won.emit()
+		_offer_finish([_continue_option(), _replay_option()])
 	elif _is_out_of_turns():
 		_offer_retry()
 	else:

@@ -41,6 +41,7 @@ var completed_quests: Dictionary = {}  # character id -> true once their quest i
 var quest_up: Array[bool] = []  # per grid slot: card face up
 var quest_pending: Array[int] = []  # slots turned in the current, unfinished attempt
 var quest_turns: int = 0  # completed three-card attempts in the current round
+var quest_levels: Dictionary = {}  # character id -> highest level cleared in a multi-level quest
 var _quest_deck: Array[int] = []  # card kind (index into QUEST_CARD_TEXTURES) per grid slot
 
 var characters: Dictionary = CharacterData.ALL.duplicate(true)
@@ -62,6 +63,7 @@ func reset_state() -> void:
 	_quest_deck = []
 	dialogue_progress = {}
 	completed_quests = {}
+	quest_levels = {}
 	quest_up = []
 	quest_pending = []
 	quest_turns = 0

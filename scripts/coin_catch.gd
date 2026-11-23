@@ -125,7 +125,7 @@ func _process(delta: float) -> void:
 				return
 	if _spawned == TOTAL_COINS and _coins.is_empty():
 		_over = true
-		won.emit()
+		_offer_finish([_continue_option(), _replay_option()])
 
 
 func _place_sack(x: float) -> void:

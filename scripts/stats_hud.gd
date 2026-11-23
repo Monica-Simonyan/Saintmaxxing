@@ -1,7 +1,8 @@
 extends CanvasLayer
-## Top-right stats bar: an icon with its score below, and a tooltip below on hover (Autoload: StatsHud).
+## Top-centre stats bar: an icon with its score below, and a tooltip below on hover (Autoload: StatsHud).
 
 const ICON_SIZE: float = 30.0
+const ROW_TOP: float = 4.0
 const PLATE_TEXTURE: Texture2D = preload("res://assets/ui/stats_plate.png")
 const PLATE_CORNER: int = 26  # nine-patch margin of the plate's rounded border
 const PLATE_PADDING: Vector4 = Vector4(24.0, 0.0, 24.0, 14.0)  # left, top (it runs off-screen), right, bottom
@@ -37,10 +38,9 @@ func _ready() -> void:
 	add_child(_plate)
 
 	_row = HBoxContainer.new()
-	_row.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_row.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_row.offset_right = -16.0
-	_row.offset_top = 10.0
+	_row.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_row.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_row.offset_top = ROW_TOP
 	_row.add_theme_constant_override("separation", 12)
 	add_child(_row)
 

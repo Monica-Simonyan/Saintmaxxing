@@ -215,6 +215,7 @@ const ALL: Dictionary = {
 		"id": "vampire",
 		"quest_intro": "vampire.quest-intro",
 		"hint_game": "maze",  # a Pac-Man maze: the unicorn eats glitter and the vampire's teeth prowl
+		"hint_levels": GlitterMaze.LEVEL_COUNT,  # after the quest the hint icon opens the next level
 		"quest_scroll": "vampire.quest-scroll",
 		"map_pos": Vector2(0.80, 0.975),  # tag centre as a fraction of the map image
 		"name": "vampire.name",

@@ -16,29 +16,34 @@ const PELLET_SOUND: AudioStream = preload("res://assets/audio/pellet_eat.mp3")
 const GEM_SOUND: AudioStream = preload("res://assets/audio/gem_eat.mp3")
 const UNICORN_TEXTURE: Texture2D = preload("res://assets/characters/unicorn/unicorn.png")
 
-# Maze: nodes sit on every second tile; the tiles between them are open where lanes connect.
-const NODE_COLS: int = 11
-const NODE_ROWS: int = 6
-const GRID_COLS: int = NODE_COLS * 2 - 1
-const GRID_ROWS: int = NODE_ROWS * 2 - 1
-const TILE: float = 50.0
-const DEN_TILE: Vector2i = Vector2i(10, 4)  # the teeth wake up here
-const START_TILE: Vector2i = Vector2i(10, 10)
-const DEAD_END_OPEN_CHANCE: float = 0.85  # most dead ends get a second way out
-const DIRECTIONS: Array[Vector2i] = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
-
+# --- Unicorn ---
 const MAX_HITS: int = 3
 const UNICORN_SPEED: float = 5.2  # tiles per second
 const UNICORN_HEIGHT: float = 62.0
 const UNICORN_TILT: float = 0.3  # radians when running up or down
 const UNICORN_TILT_SPEED: float = 12.0
+const CHOMP_SPEED: float = 14.0
+const CHOMP_CLOSED_SCALE: float = 0.8
+const CHOMP_OPEN_SCALE: float = 1.15
 const CHOMP_PULSE: float = 1.12
 const CHOMP_PULSE_SECONDS: float = 0.1
+const HURT_SECONDS: float = 1.6  # the unicorn blinks and can't be caught after a reset
+const HURT_FREEZE_SECONDS: float = 0.9
+const HURT_BLINK_SECONDS: float = 0.07
 
+# --- Teeth ---
 const TEETH_SIZE: Vector2 = Vector2(54, 32)  # the picture is about 1.7 times wider than tall
 const TEETH_SPEEDS: Array[float] = [4.3, 4.0, 3.7, 3.9]  # tiles per second, one entry per enemy
+const TEETH_WAKE_SECONDS: Array[float] = [1.5, 4.0, 7.0, 9.5]
 const AMBUSH_TILES: int = 3  # the ambusher aims this many tiles ahead of the unicorn
 const SHY_DISTANCE: float = 5.0  # the shy one retreats to its corner when closer than this many tiles
+const CATCH_DISTANCE: float = 30.0
+const RESPAWN_SECONDS: float = 3.0
+const SCARED_SPEED_SCALE: float = 0.6
+const SCARED_FLASH_SECONDS: float = 1.5
+const SCARED_FLASH_INTERVAL: float = 0.15
+const SCARED_COLOR: Color = Color(0.5, 0.7, 1.6)
+const WAITING_ALPHA: float = 0.45
 
 # Levels 1 to 4; every list has one entry per level. Level 1 is the quest, the rest are optional.
 const LEVEL_COUNT: int = 4
@@ -50,59 +55,26 @@ const LEVEL_CHASE_SECONDS: Array[float] = [18.0, 22.0, 26.0, 30.0]
 const LEVEL_EXTRA_OPENINGS: Array[int] = [14, 11, 8, 5]  # fewer loops make the maze harder to escape
 const LEVEL_INTRO_SECONDS: float = 1.4
 
-const FRUIT_AT: Array[float] = [0.35, 0.7]  # share of the dots eaten when a gem appears
-const FRUIT_SECONDS: float = 9.0
-const FRUIT_SCORE: int = 100  # times the level
-const GEM_RADIUS: float = 11.0
-const GEM_WIDTH_RATIO: float = 0.75  # the diamond is narrower than it is tall
-const GLOW_RADIUS_SCALE: float = 1.9
-const PULSE_SPEED: float = 6.0
-const RAIL_GLOW_ALPHA: float = 0.1
-const RAIL_HALO_ALPHA: float = 0.14
-const RAIL_CORE_ALPHA: float = 0.9
-const BANNER_IN_SECONDS: float = 0.35
-const BANNER_OUT_SECONDS: float = 0.3
-const FRUIT_COLOR: Color = Color(0.55, 0.95, 1.0)
-const NO_TILE: Vector2i = Vector2i(-1, -1)
-const SAVE_PATH: String = "user://glitter_maze.cfg"
-const CHOICE_BOTTOM_MARGIN: float = 70.0
-const CHOICE_GAP: float = 24.0
-const TEETH_WAKE_SECONDS: Array[float] = [1.5, 4.0, 7.0, 9.5]
-const RESPAWN_SECONDS: float = 3.0
-const SCARED_SPEED_SCALE: float = 0.6
-const SCARED_FLASH_SECONDS: float = 1.5
-const SCARED_FLASH_INTERVAL: float = 0.15
-const SCARED_COLOR: Color = Color(0.5, 0.7, 1.6)
-const WAITING_ALPHA: float = 0.45
-const CATCH_DISTANCE: float = 30.0
-const CHOMP_SPEED: float = 14.0
-const CHOMP_CLOSED_SCALE: float = 0.8
-const CHOMP_OPEN_SCALE: float = 1.15
-
+# --- Scoring, gem and feedback ---
 const DOT_SCORE: int = 10
 const PELLET_SCORE: int = 50
 const ENEMY_SCORE: int = 200  # doubles for every enemy eaten with the same pellet
-
-const HURT_SECONDS: float = 1.6  # the unicorn blinks and can't be caught after a reset
-const HURT_FREEZE_SECONDS: float = 0.9
-const HURT_BLINK_SECONDS: float = 0.07
+const FRUIT_AT: Array[float] = [0.35, 0.7]  # share of the dots eaten when a gem appears
+const FRUIT_SECONDS: float = 9.0
+const FRUIT_SCORE: int = 100  # times the level
+const NO_TILE: Vector2i = Vector2i(-1, -1)
+const SAVE_PATH: String = "user://glitter_maze.cfg"
 const VANISH_PULSE_SCALE: float = 1.35
 const VANISH_PULSE_SECONDS: float = 0.18
 const VANISH_PULSE_COUNT: int = 2
 const VANISH_FADE_SECONDS: float = 0.25
+const BANNER_IN_SECONDS: float = 0.35
+const BANNER_OUT_SECONDS: float = 0.3
 
-# Look
+# --- Look ---
 const BACKGROUND_COLOR: Color = Color(0.08, 0.01, 0.03, 0.88)  # the vampire's den stays visible
 const VIGNETTE_COLOR: Color = Color(0.03, 0.0, 0.02, 0.55)
-const RAIL_COLOR: Color = Color(0.85, 0.12, 0.2)
-const RAIL_GLOW_THICKNESS: float = 12.0
-const RAIL_HALO_THICKNESS: float = 6.0
-const RAIL_CORE_THICKNESS: float = 3.0
-const WALL_CAP: float = 1.5  # extends wall ends so corners join
 const RAIL_PULSE_SECONDS: float = 1.8
-const GLITTER_COLOR: Color = Color(1.0, 0.86, 0.72)
-const DOT_RADIUS: float = 3.5
-const PELLET_RADIUS: float = 8.0
 const MOTE_COUNT: int = 16
 const BAT_COLOR: Color = Color(0.4, 0.12, 0.22, 0.75)  # lighter than the dialogue's bats so they show on the dark den
 const BURST_COUNT: int = 24
@@ -120,12 +92,13 @@ const HELP_RADIUS: int = 24
 const HELP_COLOR: Color = Color(0.05, 0.01, 0.03, 0.92)
 const HELP_TEXT_COLOR: Color = Color(1.0, 0.93, 0.85)
 
-var _open: Array = []  # [row][col] -> bool, whether that tile is part of a lane
+var _grid := MazeGrid.new()
 var _dots: Dictionary = {}  # tile -> true for a big pellet, false for a plain dot
 var _world: Control  # shaken on a hit
 var _maze: Control  # tile coordinates are relative to this; centred on screen
 var _glow: MazeGlow
-var _dot_view: DotView
+var _dot_view: MazeDots
+var _pulse_view: MazePulse
 var _unicorn: TextureRect
 var _unicorn_walker: Walker = Walker.new()
 var _unicorn_tween: Tween
@@ -149,7 +122,6 @@ var _fruit_tile: Vector2i = NO_TILE
 var _fruit_left: float = 0.0
 var _banner: Label
 var _help: PanelContainer  # the controls popup; the maze stays frozen while it is open
-var _choices: HBoxContainer
 var _hiss: AudioStreamPlayer
 var _eat_player: AudioStreamPlayer
 var _pellet_player: AudioStreamPlayer
@@ -180,47 +152,6 @@ class Enemy:
 	var phase: float = 0.0
 
 
-## The red lanes: a soft glow with a thin bright core.
-class MazeGlow:
-	extends Control
-	var segments: Array[Array] = []  # [from, to] pairs in maze pixels
-
-	func _draw() -> void:
-		var glow := Color(GlitterMaze.RAIL_COLOR, GlitterMaze.RAIL_GLOW_ALPHA)
-		var halo := Color(GlitterMaze.RAIL_COLOR, GlitterMaze.RAIL_HALO_ALPHA)
-		var core := Color(GlitterMaze.RAIL_COLOR, GlitterMaze.RAIL_CORE_ALPHA)
-		for segment in segments:
-			draw_line(segment[0], segment[1], glow, GlitterMaze.RAIL_GLOW_THICKNESS, true)
-			draw_line(segment[0], segment[1], halo, GlitterMaze.RAIL_HALO_THICKNESS, true)
-			draw_line(segment[0], segment[1], core, GlitterMaze.RAIL_CORE_THICKNESS, true)
-
-
-## The glitter dots; a pellet is bigger and pulses.
-class DotView:
-	extends Control
-	var dots: Dictionary = {}
-	var pulse: float = 0.0  # 0 to 1
-	var fruit: Vector2i = GlitterMaze.NO_TILE
-
-	func _draw() -> void:
-		if fruit != GlitterMaze.NO_TILE:
-			var at: Vector2 = (Vector2(fruit) + Vector2(0.5, 0.5)) * GlitterMaze.TILE
-			var r: float = GlitterMaze.GEM_RADIUS + pulse * 2.0
-			var half_width: float = r * GlitterMaze.GEM_WIDTH_RATIO
-			draw_circle(at, r * GlitterMaze.GLOW_RADIUS_SCALE, Color(GlitterMaze.FRUIT_COLOR, 0.2))
-			draw_colored_polygon(PackedVector2Array([at + Vector2(0, -r), at + Vector2(half_width, 0), at + Vector2(0, r), at + Vector2(-half_width, 0)]), GlitterMaze.FRUIT_COLOR)
-		for tile in dots:
-			var center: Vector2 = (Vector2(tile) + Vector2(0.5, 0.5)) * GlitterMaze.TILE
-			var color: Color = GlitterMaze.GLITTER_COLOR
-			if dots[tile]:
-				var radius: float = GlitterMaze.PELLET_RADIUS + pulse * 2.5
-				draw_circle(center, radius * GlitterMaze.GLOW_RADIUS_SCALE, Color(color, 0.18 + pulse * 0.1))
-				draw_circle(center, radius, color)
-			else:
-				draw_circle(center, GlitterMaze.DOT_RADIUS * 2.2, Color(color, 0.16))
-				draw_circle(center, GlitterMaze.DOT_RADIUS, color)
-
-
 func _ready() -> void:
 	super()
 	clip_contents = true
@@ -246,9 +177,12 @@ func _ready() -> void:
 	var pulse := create_tween().set_loops()
 	pulse.tween_property(_glow, "modulate:a", 0.6, RAIL_PULSE_SECONDS / 2.0).set_trans(Tween.TRANS_SINE)
 	pulse.tween_property(_glow, "modulate:a", 1.0, RAIL_PULSE_SECONDS / 2.0).set_trans(Tween.TRANS_SINE)
-	_dot_view = DotView.new()
+	_dot_view = MazeDots.new()
 	_dot_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_maze.add_child(_dot_view)
+	_pulse_view = MazePulse.new()
+	_pulse_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_maze.add_child(_pulse_view)
 
 	_unicorn = _make_unicorn()
 	_hiss = _make_player(HISS_SOUND)
@@ -262,8 +196,12 @@ func _ready() -> void:
 	add_child(_hud)
 	resized.connect(_center_maze)
 	_center_maze()
+	_level = mini(_cleared_level() + 1, LEVEL_COUNT)  # the hint icon continues where the player left off
 	_start_round()
-	_show_help()
+	if _level == 1:
+		_show_help()
+	else:
+		_announce_level()
 
 
 func _make_player(stream: AudioStream) -> AudioStreamPlayer:
@@ -299,8 +237,6 @@ func _gui_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	_dot_view.pulse = 0.5 + 0.5 * sin(Time.get_ticks_msec() / 1000.0 * PULSE_SPEED)
-	_dot_view.queue_redraw()
 	if _over or _help:
 		return
 	_clock += delta
@@ -325,127 +261,32 @@ func _process(delta: float) -> void:
 
 # --- Maze --------------------------------------------------------------------------------
 
-## A random maze: a spanning tree of lanes, then dead ends and a few extra walls opened for loops.
-func _generate_maze() -> void:
-	_open = []
-	for row in GRID_ROWS:
-		var cells: Array[bool] = []
-		cells.resize(GRID_COLS)
-		cells.fill(false)
-		_open.append(cells)
-
-	var visited: Dictionary = {DEN_TILE: true}
-	_open[DEN_TILE.y][DEN_TILE.x] = true
-	var stack: Array[Vector2i] = [DEN_TILE]
-	while not stack.is_empty():
-		var tile: Vector2i = stack.back()
-		var fresh: Array[Vector2i] = []
-		for dir in DIRECTIONS:
-			var next: Vector2i = tile + dir * 2
-			if _in_grid(next) and not visited.has(next):
-				fresh.append(next)
-		if fresh.is_empty():
-			stack.pop_back()
-			continue
-		var chosen: Vector2i = fresh.pick_random()
-		_set_open(tile + (chosen - tile) / 2)
-		_set_open(chosen)
-		visited[chosen] = true
-		stack.append(chosen)
-
-	for row in range(0, GRID_ROWS, 2):
-		for col in range(0, GRID_COLS, 2):
-			var tile := Vector2i(col, row)
-			if _open_neighbors(tile).size() == 1 and randf() < DEAD_END_OPEN_CHANCE:
-				_knock_through(tile)
-	for i in LEVEL_EXTRA_OPENINGS[_level - 1]:
-		_knock_through(Vector2i(randi_range(0, NODE_COLS - 1) * 2, randi_range(0, NODE_ROWS - 1) * 2))
-
-
-## Opens the wall between a node and a random neighbouring node, if it has a closed one.
-func _knock_through(tile: Vector2i) -> void:
-	var closed: Array[Vector2i] = []
-	for dir in DIRECTIONS:
-		if _in_grid(tile + dir * 2) and not _is_open(tile + dir):
-			closed.append(dir)
-	if not closed.is_empty():
-		_set_open(tile + closed.pick_random())
-
-
-func _set_open(tile: Vector2i) -> void:
-	_open[tile.y][tile.x] = true
-
-
-func _in_grid(tile: Vector2i) -> bool:
-	return tile.x >= 0 and tile.y >= 0 and tile.x < GRID_COLS and tile.y < GRID_ROWS
-
-
-func _is_open(tile: Vector2i) -> bool:
-	return _in_grid(tile) and _open[tile.y][tile.x]
-
-
-func _open_neighbors(tile: Vector2i) -> Array[Vector2i]:
-	var result: Array[Vector2i] = []
-	for dir in DIRECTIONS:
-		if _is_open(tile + dir):
-			result.append(dir)
-	return result
-
-
-func _tile_center(tile: Vector2i) -> Vector2:
-	return (Vector2(tile) + Vector2(0.5, 0.5)) * TILE
-
-
 func _walker_position(walker: Walker) -> Vector2:
-	return _tile_center(walker.from_tile).lerp(_tile_center(walker.to_tile), walker.progress)
+	return MazeGrid.tile_center(walker.from_tile).lerp(MazeGrid.tile_center(walker.to_tile), walker.progress)
 
 
-## Wall lines along every side of a corridor tile that has no corridor next to it.
-func _wall_segments(tile: Vector2i) -> Array[Array]:
-	var walls: Array[Array] = []
-	var origin := Vector2(tile) * TILE
-	var corners: Dictionary = {
-		Vector2i.UP: [Vector2(0, 0), Vector2(TILE, 0)],
-		Vector2i.DOWN: [Vector2(0, TILE), Vector2(TILE, TILE)],
-		Vector2i.LEFT: [Vector2(0, 0), Vector2(0, TILE)],
-		Vector2i.RIGHT: [Vector2(TILE, 0), Vector2(TILE, TILE)],
-	}
-	for dir in corners:
-		if _is_open(tile + dir):
-			continue
-		var edge: Array = corners[dir]
-		var along: Vector2 = (edge[1] - edge[0]).normalized() * WALL_CAP
-		walls.append([origin + edge[0] - along, origin + edge[1] + along])
-	return walls
-
-
-## Fills the lanes and the dots for a fresh maze.
+## Builds a fresh maze with its lanes and dots.
 func _build_maze() -> void:
-	_generate_maze()
-	var segments: Array[Array] = []
+	_grid.generate(LEVEL_EXTRA_OPENINGS[_level - 1])
 	_dots.clear()
-	for row in GRID_ROWS:
-		for col in GRID_COLS:
-			var tile := Vector2i(col, row)
-			if not _is_open(tile):
-				continue
-			_dots[tile] = false
-			segments.append_array(_wall_segments(tile))
-	_dots.erase(START_TILE)
-	_dots.erase(DEN_TILE)
-	for corner in [Vector2i(0, 0), Vector2i(GRID_COLS - 1, 0), Vector2i(0, GRID_ROWS - 1), Vector2i(GRID_COLS - 1, GRID_ROWS - 1)]:
-		_dots[corner] = true
-	_glow.segments = segments
-	_glow.queue_redraw()
+	var pellets: Array[Vector2i] = MazeGrid.corners()
+	var plain: Array[Vector2i] = []
+	for tile in _grid.open_tiles():
+		if tile == MazeGrid.START_TILE or tile == MazeGrid.DEN_TILE:
+			continue
+		var is_pellet: bool = tile in pellets
+		_dots[tile] = is_pellet
+		if not is_pellet:
+			plain.append(tile)
 	_total_dots = _dots.size()
-	_dot_view.dots = _dots
-	_glow.size = Vector2(GRID_COLS, GRID_ROWS) * TILE
-	_dot_view.size = _glow.size
-	_maze.size = _glow.size
+	_glow.build(_grid)
+	_dot_view.set_tiles(plain)
+	_pulse_view.set_pellets(pellets.duplicate())
+	_maze.size = MazeGrid.pixel_size()
 
 
 func _center_maze() -> void:
-	_maze.position = ((size - Vector2(GRID_COLS, GRID_ROWS) * TILE) / 2.0).round()
+	_maze.position = ((size - MazeGrid.pixel_size()) / 2.0).round()
 
 
 # --- Actors ------------------------------------------------------------------------------
@@ -511,9 +352,9 @@ func _move_unicorn(delta: float) -> void:
 
 
 func _pick_unicorn_direction(walker: Walker) -> Vector2i:
-	if _wanted != Vector2i.ZERO and _is_open(walker.from_tile + _wanted):
+	if _wanted != Vector2i.ZERO and _grid.is_open(walker.from_tile + _wanted):
 		return _wanted
-	if walker.heading != Vector2i.ZERO and _is_open(walker.from_tile + walker.heading):
+	if walker.heading != Vector2i.ZERO and _grid.is_open(walker.from_tile + walker.heading):
 		return walker.heading
 	return Vector2i.ZERO
 
@@ -539,7 +380,7 @@ func _scattering() -> bool:
 
 ## The tile an enemy is aiming for: each one has its own personality, like the Pac-Man ghosts.
 func _enemy_target(enemy: Enemy) -> Vector2i:
-	var corners: Array[Vector2i] = [Vector2i(GRID_COLS - 1, 0), Vector2i(0, 0), Vector2i(0, GRID_ROWS - 1), Vector2i(GRID_COLS - 1, GRID_ROWS - 1)]
+	var corners: Array[Vector2i] = MazeGrid.corners()
 	var unicorn: Vector2i = _unicorn_tile()
 	if _scattering():
 		return corners[enemy.index % corners.size()]
@@ -559,7 +400,7 @@ func _enemy_target(enemy: Enemy) -> Vector2i:
 func _pick_enemy_direction(walker: Walker) -> Vector2i:
 	var enemy := walker as Enemy
 	var options: Array[Vector2i] = []
-	for dir in _open_neighbors(enemy.from_tile):
+	for dir in _grid.open_directions(enemy.from_tile):
 		if dir != -enemy.heading:
 			options.append(dir)
 	if options.is_empty():
@@ -578,8 +419,8 @@ func _pick_enemy_direction(walker: Walker) -> Vector2i:
 
 
 func _send_to_den(enemy: Enemy, wake_seconds: float) -> void:
-	enemy.from_tile = DEN_TILE
-	enemy.to_tile = DEN_TILE
+	enemy.from_tile = MazeGrid.DEN_TILE
+	enemy.to_tile = MazeGrid.DEN_TILE
 	enemy.progress = 0.0
 	enemy.heading = Vector2i.ZERO
 	enemy.mode = Mode.WAITING
@@ -587,8 +428,8 @@ func _send_to_den(enemy: Enemy, wake_seconds: float) -> void:
 
 
 func _place_actors() -> void:
-	_unicorn_walker.from_tile = START_TILE
-	_unicorn_walker.to_tile = START_TILE
+	_unicorn_walker.from_tile = MazeGrid.START_TILE
+	_unicorn_walker.to_tile = MazeGrid.START_TILE
 	_unicorn_walker.progress = 0.0
 	_unicorn_walker.heading = Vector2i.ZERO
 	_wanted = Vector2i.ZERO
@@ -643,12 +484,16 @@ func _on_unicorn_arrived(tile: Vector2i) -> void:
 	else:
 		_eat_player.play()  # restarts on every dot, so a run of glitter chimes rather than overlaps
 	_dots.erase(tile)
+	if pellet:
+		_pulse_view.remove_pellet(tile)
+	else:
+		_dot_view.remove_tile(tile)
 	_score += PELLET_SCORE if pellet else DOT_SCORE
 	_update_progress()
 	_chomp()
 	if pellet:
 		_scare_enemies()
-		_burst(_tile_center(tile), GLITTER_COLOR, BURST_COUNT / 2)
+		_burst(MazeGrid.tile_center(tile), MazeDots.GLITTER_COLOR, BURST_COUNT / 2)
 	if _dots.is_empty():
 		_win()
 
@@ -659,21 +504,17 @@ func _maybe_spawn_fruit() -> void:
 	if _eaten < int(_total_dots * FRUIT_AT[_fruits_spawned]):
 		return
 	_fruits_spawned += 1
-	var tiles: Array[Vector2i] = []
-	for row in GRID_ROWS:
-		for col in GRID_COLS:
-			var tile := Vector2i(col, row)
-			if _is_open(tile) and tile != DEN_TILE and tile != START_TILE and tile != _unicorn_tile():
-				tiles.append(tile)
+	var tiles: Array[Vector2i] = _grid.open_tiles().filter(func(tile: Vector2i) -> bool:
+		return tile != MazeGrid.DEN_TILE and tile != MazeGrid.START_TILE and tile != _unicorn_tile())
 	_fruit_tile = tiles.pick_random()
 	_fruit_left = FRUIT_SECONDS
-	_dot_view.fruit = _fruit_tile
+	_pulse_view.show_gem(_fruit_tile)
 
 
 func _eat_fruit() -> void:
 	_gem_player.play()
 	_score += FRUIT_SCORE * _level
-	_burst(_tile_center(_fruit_tile), FRUIT_COLOR, BURST_COUNT / 2)
+	_burst(MazeGrid.tile_center(_fruit_tile), MazePulse.GEM_COLOR, BURST_COUNT / 2)
 	_clear_fruit()
 	_update_progress()
 	_chomp()
@@ -681,7 +522,7 @@ func _eat_fruit() -> void:
 
 func _clear_fruit() -> void:
 	_fruit_tile = NO_TILE
-	_dot_view.fruit = NO_TILE
+	_pulse_view.hide_gem()
 
 
 func _chomp() -> void:
@@ -758,11 +599,12 @@ func _on_hit(enemy: Enemy) -> void:
 	if _hits >= MAX_HITS:
 		_over = true
 		_save_best()
-		_offer_retry()
 		if _level > 1:
-			_show_choices(false)
-		_retry_button.modulate.a = 0.0
-		create_tween().tween_property(_retry_button, "modulate:a", 1.0, RETRY_FADE_SECONDS)
+			_offer_finish([{"text": Localization.t("ui.retry"), "action": _on_retry}, _continue_option()])
+		else:
+			_offer_retry()
+			_retry_button.modulate.a = 0.0
+			create_tween().tween_property(_retry_button, "modulate:a", 1.0, RETRY_FADE_SECONDS)
 		return
 	_hurt_left = HURT_SECONDS
 	_freeze_left = HURT_FREEZE_SECONDS
@@ -829,12 +671,13 @@ func _blink_unicorn() -> void:
 
 func _win() -> void:
 	_over = true
+	GameState.quest_levels[GameState.selected_character_id] = maxi(_cleared_level(), _level)
 	_clear_fruit()
 	_save_best()
 	_show_banner(Localization.t("ui.maze-win"))
 	var tween := create_tween()
 	tween.tween_interval(WIN_SECONDS)
-	tween.tween_callback(_show_choices.bind(_level < LEVEL_COUNT))
+	tween.tween_callback(_offer_next_steps)
 
 
 ## Explains the controls and the blue-fang rule; a click closes it and the game begins.
@@ -889,35 +732,17 @@ func _show_banner(text: String, intro: bool = false) -> void:
 		tween.tween_callback(label.queue_free)
 
 
-## The buttons at the bottom: back to the conversation, and optionally the next level.
-func _show_choices(next_level: bool) -> void:
-	_hide_choices()
-	_choices = HBoxContainer.new()
-	_choices.add_theme_constant_override("separation", int(CHOICE_GAP))
-	_choices.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	_choices.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_choices.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_choices.offset_bottom = -CHOICE_BOTTOM_MARGIN
-	var proceed := Button.new()
-	proceed.text = Localization.t("ui.maze-continue")
-	MenuButtonStyle.apply(proceed, RETRY_FONT_SIZE)
-	proceed.pressed.connect(func() -> void:
-		proceed.disabled = true  # a double click must not finish the quest twice
-		won.emit())
-	_choices.add_child(proceed)
-	if next_level:
-		var next := Button.new()
-		next.text = Localization.t("ui.maze-level") % (_level + 1)
-		MenuButtonStyle.apply(next, RETRY_FONT_SIZE)
-		next.pressed.connect(_start_level.bind(_level + 1))
-		_choices.add_child(next)
-	add_child(_choices)
+## After a cleared level: the next level if there is one, and back to the conversation.
+func _offer_next_steps() -> void:
+	var options: Array[Dictionary] = []
+	if _level < LEVEL_COUNT:
+		options.append({"text": Localization.t("ui.maze-level") % (_level + 1), "action": _start_level.bind(_level + 1)})
+	options.append(_continue_option())
+	_offer_finish(options)
 
 
-func _hide_choices() -> void:
-	if _choices:
-		_choices.queue_free()
-		_choices = null
+func _cleared_level() -> int:
+	return GameState.quest_levels.get(GameState.selected_character_id, 0)
 
 
 func _on_retry() -> void:
@@ -928,6 +753,10 @@ func _start_level(level: int) -> void:
 	_level = level
 	_level_start_score = _score
 	_start_round()
+	_announce_level()
+
+
+func _announce_level() -> void:
 	_show_banner(Localization.t("ui.maze-level") % _level, true)
 	_freeze_left = LEVEL_INTRO_SECONDS
 
@@ -935,7 +764,7 @@ func _start_level(level: int) -> void:
 func _start_round() -> void:
 	_hud.refill_hearts()
 	_hide_retry()
-	_hide_choices()
+	_hide_finish()
 	if _banner:
 		_banner.queue_free()
 		_banner = null

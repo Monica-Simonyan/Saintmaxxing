@@ -42,6 +42,7 @@ var _wish: Dictionary
 var _worn: Dictionary = {}  # slot -> item name
 var _slot_layers: Dictionary = {}  # slot -> TextureRect
 var _item_buttons: Dictionary = {}  # item name -> Button
+var _wish_label: Label
 
 
 func _ready() -> void:
@@ -49,10 +50,8 @@ func _ready() -> void:
 	_dim = _add_backdrop(DIM_COLOR)  # _flash_miss flashes it
 	_build_stage()
 	_build_panel()
-	_wish = WISHES.pick_random()
 	_build_wish_label()
-	for slot in DEFAULT_OUTFIT:
-		_wear(slot, DEFAULT_OUTFIT[slot])
+	_start_round()
 
 
 func _build_stage() -> void:
@@ -68,8 +67,8 @@ func _build_stage() -> void:
 
 
 func _build_wish_label() -> void:
-	var label := Label.new()
-	label.text = Localization.t(_wish.text)
+	_wish_label = Label.new()
+	var label := _wish_label
 	label.add_theme_font_override("font", GameState.STORY_FONT)
 	label.add_theme_font_size_override("font_size", WISH_FONT_SIZE)
 	label.add_theme_color_override("font_color", WISH_COLOR)
@@ -139,9 +138,21 @@ func _make_item_button(item: Dictionary) -> Button:
 
 func _on_finish() -> void:
 	if _worn.get(&"top") == _wish.top and _worn.get(&"bottom") == _wish.bottom:
-		won.emit()
+		_offer_finish([_continue_option(), _replay_option()])
 	else:
 		_flash_miss()
+
+
+## A new wish and the default outfit.
+func _on_retry() -> void:
+	_start_round()
+
+
+func _start_round() -> void:
+	_wish = WISHES.pick_random()
+	_wish_label.text = Localization.t(_wish.text)
+	for slot in DEFAULT_OUTFIT:
+		_wear(slot, DEFAULT_OUTFIT[slot])
 
 
 func _on_item_toggled(pressed: bool, item: Dictionary) -> void:

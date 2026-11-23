@@ -108,7 +108,7 @@ func _build_ui(data: Dictionary) -> void:
 
 	_hint_badge = HintBadge.new()
 	_hint_badge.clickable = data.has("hint_game")
-	_hint_badge.pressed.connect(_show_quest_intro)
+	_hint_badge.pressed.connect(_on_hint_pressed)
 	add_child(_hint_badge)
 
 	# Choices live in their own mirrored cloud beside the unicorn, its tail pointing at him.
@@ -248,7 +248,7 @@ func show_dialogue_node(node_key: String) -> void:
 
 
 ## Puts the current node's line and choices into the clouds, typed out when animate is set.
-func _show_line(animate: bool) -> void:
+func _show_line(animate: bool, animate_hint: bool = animate) -> void:
 	var line_text: String = Localization.t(_current_node.get("text", ""))
 	_current_choices = _current_node.get("choices", [])
 	if _typewriter_tween and _typewriter_tween.is_running():
@@ -256,10 +256,10 @@ func _show_line(animate: bool) -> void:
 	_bubble_text.text = line_text
 	_bubble_text.visible_ratio = 0.0 if animate else 1.0
 	_bubble_text.offset_bottom = TEXT_TOP + TEXT_AREA_HEIGHT
-	var hint_ready: bool = not GameState.is_quest_complete(GameState.selected_character_id) and _current_choices.any(func(choice: Dictionary) -> bool: return choice.get("helps", false))
-	_locked = hint_ready and _hint_badge.clickable
+	var quest_pending: bool = _hint_badge.clickable and not GameState.is_quest_complete(GameState.selected_character_id) and _current_choices.any(func(choice: Dictionary) -> bool: return choice.get("helps", false))
+	_locked = quest_pending
 	_rebuild_choices()
-	_hint_badge.set_ready(hint_ready, animate)
+	_hint_badge.show_hint(_hint_tip_key(quest_pending), animate_hint)
 	# Size the choices cloud as soon as the buttons have laid out, not after the (slower) text fit.
 	await get_tree().process_frame
 	_fit_choices_cloud()
@@ -269,6 +269,31 @@ func _show_line(animate: bool) -> void:
 		var duration: float = clampf(float(line_text.length()) / CHARS_PER_SECOND, 0.25, 2.2)
 		_typewriter_tween = create_tween()
 		_typewriter_tween.tween_property(_bubble_text, "visible_ratio", 1.0, duration)
+
+
+## The tooltip of the hint icon: the quest to beat, a finished quest that can go on, or none.
+func _hint_tip_key(quest_pending: bool) -> String:
+	if quest_pending:
+		return "ui.hint-ready"
+	if _can_replay_quest():
+		return "ui.hint-continue"
+	return ""
+
+
+## A won quest can be played again; a multi-level one only while a level is left.
+func _can_replay_quest() -> bool:
+	var data: Dictionary = GameState.get_selected_character()
+	if not _hint_badge.clickable or not GameState.is_quest_complete(GameState.selected_character_id):
+		return false
+	var levels: int = data.get("hint_levels", 0)
+	return levels == 0 or GameState.quest_levels.get(GameState.selected_character_id, 0) < levels
+
+
+func _on_hint_pressed() -> void:
+	if GameState.is_quest_complete(GameState.selected_character_id):
+		_start_quest()
+	else:
+		_show_quest_intro()
 
 
 func _show_quest_intro() -> void:
@@ -311,7 +336,12 @@ func _start_quest() -> void:
 
 
 ## Unrolls the character's scroll over the won game; dismissing it returns to the conversation.
+## A quest played again has no scroll: it goes straight back.
 func _show_quest_reward(game: QuestOverlay) -> void:
+	if GameState.is_quest_complete(GameState.selected_character_id):
+		game.queue_free()
+		_show_line(false, true)
+		return
 	var key: String = game.reward_scroll_key()
 	if key.is_empty():
 		key = GameState.get_selected_character().get("quest_scroll", "")
@@ -320,7 +350,7 @@ func _show_quest_reward(game: QuestOverlay) -> void:
 		scroll.queue_free()
 		game.queue_free()
 		GameState.complete_quest(GameState.selected_character_id)
-		_show_line(false))
+		_show_line(false, true))
 	add_child(scroll)
 
 
