@@ -66,8 +66,9 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	var intro: bool = GameState.is_intro_scene()
-	var shown: bool = not intro and not _forced_hidden
+	var scene := get_tree().current_scene
+	var in_dialogue: bool = scene != null and scene.scene_file_path == GameState.DIALOGUE_SCENE
+	var shown: bool = not GameState.is_intro_scene() and not in_dialogue and not _forced_hidden
 	_row.visible = shown
 	_plate.visible = shown
 	if shown:

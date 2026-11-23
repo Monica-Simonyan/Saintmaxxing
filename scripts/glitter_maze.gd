@@ -62,6 +62,8 @@ const ENEMY_SCORE: int = 200  # doubles for every enemy eaten with the same pell
 const FRUIT_AT: Array[float] = [0.35, 0.7]  # share of the dots eaten when a gem appears
 const FRUIT_SECONDS: float = 9.0
 const FRUIT_SCORE: int = 100  # times the level
+const HUD_STRIP_HEIGHT: float = 64.0  # keeps the hearts, score and back button clear of the maze
+const BOTTOM_MARGIN: float = 14.0
 const NO_TILE: Vector2i = Vector2i(-1, -1)
 const SAVE_PATH: String = "user://glitter_maze.cfg"
 const VANISH_PULSE_SCALE: float = 1.35
@@ -95,7 +97,7 @@ const HELP_TEXT_COLOR: Color = Color(1.0, 0.93, 0.85)
 var _grid := MazeGrid.new()
 var _dots: Dictionary = {}  # tile -> true for a big pellet, false for a plain dot
 var _world: Control  # shaken on a hit
-var _maze: Control  # tile coordinates are relative to this; centred on screen
+var _maze: Control  # tile coordinates are relative to this; scaled to fill the screen below the HUD
 var _glow: MazeGlow
 var _dot_view: MazeDots
 var _pulse_view: MazePulse
@@ -285,8 +287,13 @@ func _build_maze() -> void:
 	_maze.size = MazeGrid.pixel_size()
 
 
+## Scales the maze to the largest size that fits below the HUD strip and centres it.
 func _center_maze() -> void:
-	_maze.position = ((size - MazeGrid.pixel_size()) / 2.0).round()
+	var maze_size: Vector2 = MazeGrid.pixel_size()
+	var free := Vector2(size.x, size.y - HUD_STRIP_HEIGHT - BOTTOM_MARGIN)
+	var fit: float = minf(free.x / maze_size.x, free.y / maze_size.y)
+	_maze.scale = Vector2(fit, fit)
+	_maze.position = (Vector2(0.0, HUD_STRIP_HEIGHT) + (free - maze_size * fit) / 2.0).round()
 
 
 # --- Actors ------------------------------------------------------------------------------
