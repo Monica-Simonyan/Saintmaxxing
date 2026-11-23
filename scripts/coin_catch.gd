@@ -1,7 +1,7 @@
 class_name CoinCatch
 extends QuestOverlay
 
-## Hint mini-game laid over a dialogue: coins fall from random spots and a sack, moved with
+## Hint mini-game laid over a dialogue: after a click-to-start screen, coins fall from random spots and a sack, moved with
 ## A/D or the arrow keys, catches them. Each catch plays a sound and raises the count.
 ## A fixed number of coins fall; the third miss ends the round with a retry button,
 ## letting every coin pass with fewer misses wins.
@@ -13,24 +13,24 @@ const COIN_SIZE: float = 56.0
 const SACK_SIZE: Vector2 = Vector2(150, 150)
 const SACK_SPEED: float = 650.0
 const SACK_BOTTOM_MARGIN: float = 10.0
+const SPAWN_Y: float = -COIN_SIZE  # coins enter from above the screen
+const INTRO_FONT_SIZE: int = 40
 const TOTAL_COINS: int = 30
 const MAX_MISSES: int = 3
-const SPAWN_GAP_MIN: float = 1.5
-const SPAWN_GAP_MAX: float = 3.0
-const FALL_TIME_MIN: float = 2.0  # seconds a coin needs to cross the whole screen
-const FALL_TIME_MAX: float = 5.0
-# Winnability: a coin is only scheduled if the sack can reach it after the previous catch,
-# at SACK_SPEED * REACH_SLACK, plus a human REACTION_TIME.
+const SPAWN_GAP_MIN: float = 1.0
+const SPAWN_GAP_MAX: float = 2.2
+const FALL_TIME_MIN: float = 1.6  # seconds a coin needs to cross the whole screen
+const FALL_TIME_MAX: float = 4.0
 # Some coins fall slowly, then speed up part-way down.
 const BOOST_CHANCE: float = 0.35
 const BOOST_MIN: float = 1.8
 const BOOST_MAX: float = 2.6
 const BOOST_START_MIN: float = 0.3  # share of the screen crossed before the speed-up
 const BOOST_START_MAX: float = 0.6
+# Winnability: a coin is only scheduled if the sack can reach it after the previous catch,
+# at SACK_SPEED * REACH_SLACK, plus a human REACTION_TIME.
 const REACTION_TIME: float = 0.3
-const REACH_SLACK: float = 0.8
-const MISS_COLOR: Color = Color("6D0F1C")
-const MISS_FLASH_SECONDS: float = 0.6
+const REACH_SLACK: float = 0.95
 const MOUTH_MARGIN: float = 0.1  # fraction of the sack width ignored on each side of its opening
 const MOUTH_DEPTH: float = 0.45  # fraction of the sack height, from its top, that counts as the opening
 
@@ -44,17 +44,16 @@ var _last_catch_x: float = 0.0  # ...and its centre x
 var _spawned: int = 0
 var _misses: int = 0
 var _over: bool = false
-var _dim: ColorRect
-var _dim_tween: Tween
 var _sack: TextureRect
 var _hud: QuestHud
+var _intro: Label
+var _waiting: bool = true  # until the player's first click
 var _sound: AudioStreamPlayer
 
 
 func _ready() -> void:
 	super()
 	clip_contents = true
-
 	_dim = _add_backdrop(DIM_COLOR)
 
 	_sack = TextureRect.new()
@@ -66,6 +65,16 @@ func _ready() -> void:
 	add_child(_sack)
 	_place_sack(size.x / 2.0 - SACK_SIZE.x / 2.0)
 
+	_intro = Label.new()
+	_intro.text = Localization.t("ui.coin-controls") + "\n\n" + Localization.t("ui.click-to-continue")
+	_intro.add_theme_font_override("font", GameState.STORY_FONT)
+	_intro.add_theme_font_size_override("font_size", INTRO_FONT_SIZE)
+	_intro.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_intro.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_intro.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_intro.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_intro)
+
 	_hud = QuestHud.new(MAX_MISSES)
 	add_child(_hud)
 
@@ -76,7 +85,16 @@ func _ready() -> void:
 	_start_round()
 
 
+func _gui_input(event: InputEvent) -> void:
+	if _waiting and event is InputEventMouseButton and event.pressed:
+		_waiting = false
+		_intro.hide()
+		accept_event()
+
+
 func _process(delta: float) -> void:
+	if _waiting:
+		return
 	var direction: float = 0.0
 	if Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT):
 		direction -= 1.0
@@ -122,7 +140,7 @@ func _spawn_coin() -> void:
 	coin.size = Vector2(COIN_SIZE, COIN_SIZE)
 	coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var plan := _plan_coin()
-	coin.position = Vector2(plan.x - COIN_SIZE / 2.0, -COIN_SIZE)
+	coin.position = Vector2(plan.x - COIN_SIZE / 2.0, SPAWN_Y)
 	add_child(coin)
 	_coins.append(coin)
 	_spawned += 1
@@ -138,7 +156,7 @@ func _plan_coin() -> Dictionary:
 	var min_x: float = SACK_SIZE.x + COIN_SIZE / 2.0
 	var max_x: float = size.x - SACK_SIZE.x - COIN_SIZE / 2.0
 	var x: float = randf_range(min_x, max_x)
-	var distance: float = size.y + COIN_SIZE  # screen crossing, in px
+	var distance: float = size.y - SPAWN_Y  # fall length, in px
 	var boost: float = 1.0
 	var boost_share: float = 1.0  # share of the distance covered before the speed-up
 	if randf() < BOOST_CHANCE:
@@ -146,7 +164,7 @@ func _plan_coin() -> Dictionary:
 		boost_share = randf_range(BOOST_START_MIN, BOOST_START_MAX)
 	# time share of a whole crossing, for the sack-top and for the speed-up point
 	var time_per_distance: float = boost_share + (1.0 - boost_share) / boost
-	var catch_distance: float = _sack.position.y + COIN_SIZE / 2.0
+	var catch_distance: float = _sack.position.y - COIN_SIZE / 2.0 - SPAWN_Y
 	var catch_fraction: float = catch_distance / distance
 	var catch_share: float = (minf(catch_fraction, boost_share) + maxf(catch_fraction - boost_share, 0.0) / boost) / time_per_distance
 	var reach_speed: float = SACK_SPEED * REACH_SLACK
@@ -162,7 +180,7 @@ func _plan_coin() -> Dictionary:
 	return {
 		"x": x,
 		"speed": distance * time_per_distance / fall,
-		"boost_y": -COIN_SIZE + boost_share * distance,
+		"boost_y": SPAWN_Y + boost_share * distance,
 		"boost": boost,
 	}
 
@@ -177,12 +195,7 @@ func _catch(coin: TextureRect) -> void:
 func _miss() -> void:
 	_misses += 1
 	_hud.lose_heart(_misses - 1)
-	Audio.play_stat_change(false)
-	if _dim_tween:
-		_dim_tween.kill()
-	_dim.color = MISS_COLOR
-	_dim_tween = create_tween()
-	_dim_tween.tween_property(_dim, "color", DIM_COLOR, MISS_FLASH_SECONDS)
+	_flash_miss()
 	if _misses >= MAX_MISSES:
 		_over = true
 		for coin in _coins.duplicate():

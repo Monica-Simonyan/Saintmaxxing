@@ -9,7 +9,7 @@ const ALL: Dictionary = {
 		"quest_intro": "priest.quest-intro",
 		"hint_game": "coins",  # starred hint opens the coin-catching game
 		"quest_scroll": "priest.quest-scroll",  # shown when the game is won
-		"map_pos": Vector2(0.19, 0.33),  # tag centre as a fraction of the map image
+		"map_pos": Vector2(0.196, 0.35),  # tag centre as a fraction of the map image
 		"name": "priest.name",
 		"effects": {
 			"converted": {"love": 25, "faith": 25},
@@ -96,7 +96,7 @@ const ALL: Dictionary = {
 	},
 	"witch": {
 		"id": "witch",
-		"map_pos": Vector2(0.85, 0.43),  # tag centre as a fraction of the map image
+		"map_pos": Vector2(0.83, 0.45),  # tag centre as a fraction of the map image
 		"name": "witch.name",
 		"quest_intro": "witch.quest-intro",
 		"hint_game": "cards",  # starred hint opens the Card Matching Quest
@@ -214,9 +214,9 @@ const ALL: Dictionary = {
 	"vampire": {
 		"id": "vampire",
 		"quest_intro": "vampire.quest-intro",
-		"hint_game": "placeholder",  # stand-in until the vampire's quest exists
+		"hint_game": "maze",  # a Pac-Man maze: the unicorn eats glitter and the vampire's teeth prowl
 		"quest_scroll": "vampire.quest-scroll",
-		"map_pos": Vector2(0.80, 0.93),  # tag centre as a fraction of the map image
+		"map_pos": Vector2(0.80, 0.975),  # tag centre as a fraction of the map image
 		"name": "vampire.name",
 		"effects": {
 			"converted": {"justice": -25},
@@ -316,7 +316,7 @@ const ALL: Dictionary = {
 		"quest_intro": "harlot.quest-intro",
 		"hint_game": "dress",  # Rose's dress-up quest (work in progress)
 		"quest_scroll": "harlot.quest-scroll",
-		"map_pos": Vector2(0.47, 0.77),  # tag centre as a fraction of the map image
+		"map_pos": Vector2(0.49, 0.80),  # tag centre as a fraction of the map image
 		"name": "harlot.name",
 		"effects": {
 			"converted": {"love": -25, "justice": -15},

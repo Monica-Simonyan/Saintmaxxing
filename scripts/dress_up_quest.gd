@@ -2,7 +2,7 @@ class_name DressUpQuest
 extends QuestOverlay
 ## Rose's quest: dress one of her maidens. The maiden sits on a table on the left, wearing
 ## the basic top and bottom; the grid on the right swaps clothes onto her, one per slot
-## (top, bottom). Finish ends the quest. Winning rules are still to come, so Finish wins as is.
+## (top, bottom). A maiden voices a wish above her head; Finish wins only when she wears the matching set.
 
 const ASSET_DIR: String = "res://assets/minigame/dressup/"
 const SLOTS: Array[StringName] = [&"bottom", &"top"]  # draw order, lowest first
@@ -17,6 +17,18 @@ const ITEMS: Array[Dictionary] = [
 	{"slot": &"top", "name": "green_top"},
 	{"slot": &"bottom", "name": "green_bottom"},
 ]
+# What the maiden says, and the set (top, bottom) that answers it.
+const WISHES: Array[Dictionary] = [
+	{"text": "harlot.wish-floral", "top": "green_top", "bottom": "green_bottom"},
+	{"text": "harlot.wish-lace", "top": "lace_top", "bottom": "lace_bottom"},
+	{"text": "harlot.wish-ruffle", "top": "pink_top", "bottom": "pink_bottom"},
+]
+const WISH_FONT_SIZE: int = 32
+const WISH_TOP_MARGIN: float = 6.0
+const WISH_WIDTH: float = 520.0
+const WISH_COLOR: Color = Color(0.98, 0.92, 0.85)
+const WISH_OUTLINE_COLOR: Color = Color(0.1, 0.04, 0.08)
+const WISH_OUTLINE_SIZE: int = 8
 const CANVAS_RATIO: float = 16.0 / 9.0  # every layer PNG is a 1920x1080 canvas
 const STAGE_CENTER: float = 0.3  # horizontal centre of the maiden, as a fraction of the screen
 const PANEL_LEFT: float = 0.58  # where the clothes panel starts, as a fraction of the screen width
@@ -26,16 +38,19 @@ const GRID_GAP: int = 10
 const FINISH_FONT_SIZE: int = 28
 const PANEL_MARGIN: int = 24
 
-var _touched: bool = false  # whether the player changed her outfit at all
+var _wish: Dictionary
+var _worn: Dictionary = {}  # slot -> item name
 var _slot_layers: Dictionary = {}  # slot -> TextureRect
 var _item_buttons: Dictionary = {}  # item name -> Button
 
 
 func _ready() -> void:
 	super()
-	_add_backdrop(DIM_COLOR)
+	_dim = _add_backdrop(DIM_COLOR)  # _flash_miss flashes it
 	_build_stage()
 	_build_panel()
+	_wish = WISHES.pick_random()
+	_build_wish_label()
 	for slot in DEFAULT_OUTFIT:
 		_wear(slot, DEFAULT_OUTFIT[slot])
 
@@ -50,6 +65,22 @@ func _build_stage() -> void:
 	_add_layer(stage, load(ASSET_DIR + "girl.png"))
 	for slot in SLOTS:
 		_slot_layers[slot] = _add_layer(stage, null)
+
+
+func _build_wish_label() -> void:
+	var label := Label.new()
+	label.text = Localization.t(_wish.text)
+	label.add_theme_font_override("font", GameState.STORY_FONT)
+	label.add_theme_font_size_override("font_size", WISH_FONT_SIZE)
+	label.add_theme_color_override("font_color", WISH_COLOR)
+	label.add_theme_color_override("font_outline_color", WISH_OUTLINE_COLOR)
+	label.add_theme_constant_override("outline_size", WISH_OUTLINE_SIZE)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size = Vector2(WISH_WIDTH, 0.0)
+	label.position = Vector2(size.x * STAGE_CENTER - WISH_WIDTH / 2.0, WISH_TOP_MARGIN)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(label)
 
 
 func _add_layer(parent: Control, texture: Texture2D) -> TextureRect:
@@ -90,7 +121,7 @@ func _build_panel() -> void:
 	finish.text = Localization.t("ui.finish")
 	MenuButtonStyle.apply(finish, FINISH_FONT_SIZE)
 	finish.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	finish.pressed.connect(func() -> void: won.emit())
+	finish.pressed.connect(_on_finish)
 	panel.add_child(finish)
 
 
@@ -106,17 +137,20 @@ func _make_item_button(item: Dictionary) -> Button:
 	return button
 
 
-func reward_scroll_key() -> String:
-	return "harlot.quest-scroll" if _touched else "harlot.quest-scroll-bare"
+func _on_finish() -> void:
+	if _worn.get(&"top") == _wish.top and _worn.get(&"bottom") == _wish.bottom:
+		won.emit()
+	else:
+		_flash_miss()
 
 
 func _on_item_toggled(pressed: bool, item: Dictionary) -> void:
-	_touched = true
 	_wear(item.slot, item.name if pressed else "")
 
 
 ## Puts `item_name` on `slot` (or strips the slot when empty) and syncs the grid highlights.
 func _wear(slot: StringName, item_name: String) -> void:
+	_worn[slot] = item_name
 	_slot_layers[slot].texture = load(ASSET_DIR + item_name + ".png") if not item_name.is_empty() else null
 	for item in ITEMS:
 		if item.slot == slot:

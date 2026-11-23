@@ -24,6 +24,7 @@ const SCENE_WASH_OUT: float = 1.1
 const CLOUD_OPACITY: float = 0.6
 const CLOUD_TEXT_COLOR: Color = CloudLabel.TEXT_COLOR
 const LOCK_ICON: Texture2D = preload("res://assets/ui/lock.png")
+const UNICORN_TEXTURE: Texture2D = preload("res://assets/characters/unicorn/unicorn.png")
 const LOCK_SIZE: Vector2 = Vector2(72, 84)
 const CHOICE_ALPHA: Dictionary = {"normal": 0.3, "hover": 0.55, "pressed": 0.7, "focus": 0.3}
 
@@ -49,6 +50,7 @@ var _unicorn: TextureRect
 var _hint_badge: HintBadge
 var _choices_scroll: ScrollContainer
 var _choices_box: VBoxContainer
+var _bats: BatFlock  # the vampire's scene only
 var _outcome_panel: PanelContainer
 var _outcome_label: RichTextLabel
 
@@ -87,6 +89,10 @@ func _build_ui(data: Dictionary) -> void:
 	_scene_overlay = _make_layer(null)
 	_scene_overlay.visible = false
 	add_child(_scene_overlay)
+
+	if data.get("id", "") == "vampire":
+		_bats = BatFlock.new()
+		add_child(_bats)
 
 	_cloud_tex = AtlasTexture.new()
 	var cloud_tex := _cloud_tex
@@ -146,7 +152,7 @@ func _make_bubble_text(color: Color) -> RichTextLabel:
 
 
 func _make_unicorn() -> TextureRect:
-	var texture := load("res://assets/characters/unicorn/unicorn.png") as Texture2D
+	var texture := UNICORN_TEXTURE
 	var width: float = UNICORN_HEIGHT * texture.get_width() / texture.get_height()
 	var unicorn := TextureRect.new()
 	unicorn.texture = texture
@@ -289,6 +295,8 @@ func _create_quest_game(kind: String) -> QuestOverlay:
 			return CardMatchingQuest.new()
 		"dress":
 			return DressUpQuest.new()
+		"maze":
+			return GlitterMaze.new()
 		_:
 			return PlaceholderQuest.new()
 
@@ -296,6 +304,9 @@ func _create_quest_game(kind: String) -> QuestOverlay:
 func _start_quest() -> void:
 	var game: QuestOverlay = _create_quest_game(GameState.get_selected_character()["hint_game"])
 	game.won.connect(_show_quest_reward.bind(game))
+	if _bats:
+		_bats.hide()  # the maze game flies its own
+		game.tree_exited.connect(_bats.show)
 	add_child(game)
 
 

@@ -6,6 +6,10 @@ const TYPE_SPEED: float = 0.03   # seconds per character
 const DRIFT_SECONDS: float = 1.2
 const FADE_SHADER: Shader = preload("res://shaders/hair_fade.gdshader")
 const LINE_FADE_IN: float = 0.25  # seconds for a line bubble to appear
+const AGE_RATING: String = "16+"  # the same in every language
+const AGE_FONT_SIZE: int = 40
+const AGE_MARGIN: Vector2 = Vector2(28, 18)
+const AGE_COLOR: Color = Color(0.93, 0.88, 0.8, 0.85)
 
 @onready var hair_panel: MarginContainer = $HairPanel
 @onready var lines_container: VBoxContainer = $HairPanel/ScrollContainer/LinesContainer
@@ -20,6 +24,7 @@ var _busy: bool = true  # blocks clicks until the unicorn has drifted in
 
 
 func _ready() -> void:
+	_add_age_rating()
 	_place_hair_panel()
 	MenuButtonStyle.apply(continue_button, 28)
 	continue_button.hide()
@@ -29,6 +34,17 @@ func _ready() -> void:
 	await _drift_unicorn_in()
 	_busy = false
 	_show_next_line()
+
+
+func _add_age_rating() -> void:
+	var label := Label.new()
+	label.text = AGE_RATING
+	label.add_theme_font_override("font", GameState.STORY_FONT)
+	label.add_theme_font_size_override("font_size", AGE_FONT_SIZE)
+	label.add_theme_color_override("font_color", AGE_COLOR)
+	label.position = AGE_MARGIN
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(label)
 
 
 # The monologue is written on the unicorn's mane, wherever the final pose puts it.

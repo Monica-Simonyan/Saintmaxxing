@@ -8,6 +8,7 @@ const HEART_EMPTY: Texture2D = preload("res://assets/minigame/heart_empty.png")
 const HEART_SIZE: Vector2 = Vector2(44, 35)
 const HEART_PULSE_SCALE: float = 1.6
 const HEART_PULSE_SECONDS: float = 0.3
+const HEART_WOBBLE: float = 0.35  # radians
 const MARGIN: Vector2 = Vector2(24, 14)
 const SEPARATION: int = 22
 const VALUE_MIN_WIDTH: float = 90.0
@@ -64,6 +65,9 @@ func lose_heart(index: int) -> void:
 	pulse.tween_property(heart, "scale", Vector2.ONE * HEART_PULSE_SCALE, HEART_PULSE_SECONDS / 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	pulse.tween_callback(func() -> void: heart.texture = HEART_EMPTY)
 	pulse.tween_property(heart, "scale", Vector2.ONE, HEART_PULSE_SECONDS / 2.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	var wobble := create_tween()
+	for angle in [HEART_WOBBLE, -HEART_WOBBLE, HEART_WOBBLE / 2.0, 0.0]:
+		wobble.tween_property(heart, "rotation", angle, HEART_PULSE_SECONDS / 4.0)
 
 
 func refill_hearts() -> void:

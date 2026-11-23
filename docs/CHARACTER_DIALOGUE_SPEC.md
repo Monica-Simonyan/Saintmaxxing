@@ -30,7 +30,7 @@ Follow this for every new character so they all behave and look alike.
 	"choices_rect": Rect2(770, 40, 360, 270),  # optional: choices cloud position
 	"choices_opacity": 1.0,                    # optional
 	"outcome_on_top": false,             # true if the ending art sits low (priest)
-	"hint_game": "coins",                # optional: "coins", "cards", "dress" or "placeholder"; the starred hint opens that mini-game
+	"hint_game": "coins",                # optional: "coins", "cards", "dress", "maze" or "placeholder"; the starred hint opens that mini-game
 	"quest_intro": "priest.quest-intro", # locale key shown in the popup before the game starts
 	"quest_scroll": "priest.quest-scroll", # locale key of the scroll shown when the game is won
 	"dialogue": { ...nodes... },

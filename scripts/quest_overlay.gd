@@ -9,8 +9,13 @@ signal won
 
 const RETRY_FONT_SIZE: int = 28
 const DIM_COLOR: Color = Color(0.2, 0.2, 0.2, 0.75)
+const MISS_COLOR: Color = Color("6D0F1C")
+const MISS_FLASH_SECONDS: float = 0.6
 
 var _retry_button: Button
+var _dim: ColorRect  # the games that flash on a failure keep their DIM_COLOR backdrop here
+var _dim_tween: Tween
+var _dim_rest: Color = DIM_COLOR  # the colour _dim returns to after a flash
 
 
 func _ready() -> void:
@@ -32,6 +37,16 @@ func _add_backdrop(color: Color) -> ColorRect:
 	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(backdrop)
 	return backdrop
+
+
+## Negative-stat sound plus a dark-red flash of the dim backdrop that fades back.
+func _flash_miss() -> void:
+	Audio.play_stat_change(false)
+	if _dim_tween:
+		_dim_tween.kill()
+	_dim.color = MISS_COLOR
+	_dim_tween = create_tween()
+	_dim_tween.tween_property(_dim, "color", _dim_rest, MISS_FLASH_SECONDS)
 
 
 ## Locale key of the scroll shown on a win; empty uses the character's `quest_scroll`.

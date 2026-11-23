@@ -2,6 +2,9 @@ extends CanvasLayer
 ## Top-right stats bar: an icon with its score below, and a tooltip below on hover (Autoload: StatsHud).
 
 const ICON_SIZE: float = 30.0
+const PLATE_TEXTURE: Texture2D = preload("res://assets/ui/stats_plate.png")
+const PLATE_CORNER: int = 26  # nine-patch margin of the plate's rounded border
+const PLATE_PADDING: Vector4 = Vector4(24.0, 0.0, 24.0, 14.0)  # left, top (it runs off-screen), right, bottom
 const STATS: Array[Dictionary] = [
 	{"id": "love", "icon": "res://assets/ui/stats/love.png"},
 	{"id": "faith", "icon": "res://assets/ui/stats/faith.png"},
@@ -11,6 +14,7 @@ const STATS: Array[Dictionary] = [
 
 var _score_labels: Dictionary = {}
 var _row: HBoxContainer
+var _plate: NinePatchRect
 var _tooltip: PanelContainer
 var _tooltip_label: Label
 var _forced_hidden: bool = false
@@ -23,6 +27,14 @@ func _ready() -> void:
 	layer = 100
 	GameState.stat_changed.connect(_on_stat_changed)
 	process_mode = Node.PROCESS_MODE_ALWAYS
+
+	_plate = NinePatchRect.new()
+	_plate.texture = PLATE_TEXTURE
+	_plate.patch_margin_left = PLATE_CORNER
+	_plate.patch_margin_right = PLATE_CORNER
+	_plate.patch_margin_bottom = PLATE_CORNER
+	_plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_plate)
 
 	_row = HBoxContainer.new()
 	_row.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -57,6 +69,11 @@ func _process(_delta: float) -> void:
 	var intro: bool = GameState.is_intro_scene()
 	var shown: bool = not intro and not _forced_hidden
 	_row.visible = shown
+	_plate.visible = shown
+	if shown:
+		var rect := _row.get_global_rect()
+		_plate.position = Vector2(rect.position.x - PLATE_PADDING.x, -PLATE_PADDING.y)
+		_plate.size = Vector2(rect.size.x + PLATE_PADDING.x + PLATE_PADDING.z, rect.end.y + PLATE_PADDING.w)
 	if not shown:
 		_tooltip.visible = false
 	elif not _pending_changes.is_empty() and not _showing_popups:

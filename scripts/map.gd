@@ -1,16 +1,24 @@
 extends Control
-## Town map: each character stands at a house marked with a name tag; clicking a tag starts their dialogue.
+## Town map: each character stands at a house marked with a name tag; clicking a tag or the house starts their dialogue.
 
 const TAG_TEXTURE: Texture2D = preload("res://assets/map/map_tag.png")
 const TAG_FONT_SIZE: int = 22
 const TAG_TEXT_COLOR: Color = Color(0.3, 0.16, 0.08)
 const TAG_PADDING: Vector2 = Vector2(30, 14)
 const HOVER_SCALE: float = 1.08
+# Each house sprite and its top-left corner in map-image pixels, where it was painted onto the map.
+const HOUSES: Dictionary = {
+	"priest": {"texture": preload("res://assets/map/house_priest.png"), "position": Vector2(226, 19)},
+	"witch": {"texture": preload("res://assets/map/house_witch.png"), "position": Vector2(1355, 76)},
+	"vampire": {"texture": preload("res://assets/map/house_vampire.png"), "position": Vector2(1374, 586)},
+	"brothel_worker": {"texture": preload("res://assets/map/house_brothel_worker.png"), "position": Vector2(769, 469)},
+}
 # Paragraph per stat, in reading order (keys scroll.news.<stat>-up/-down); a stat that ended exactly at 50 adds nothing.
 const NEWS_ORDER: Array[String] = ["justice", "faith", "magic", "love"]
 
 var _map: TextureRect
 var _tags: Dictionary = {}  # character_id -> Button
+var _houses: Dictionary = {}  # character_id -> MapHouse
 
 
 func _ready() -> void:
@@ -21,6 +29,13 @@ func _ready() -> void:
 	_map.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	_map.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_map)
+
+	for character_id in HOUSES:
+		var active: bool = not GameState.is_conversation_completed(character_id)
+		var house := MapHouse.new(HOUSES[character_id]["texture"], active)
+		house.pressed.connect(_engage_character.bind(character_id))
+		add_child(house)
+		_houses[character_id] = house
 
 	for character_id in GameState.CHARACTER_ORDER:
 		var data: Dictionary = GameState.get_character(character_id)
@@ -115,11 +130,15 @@ func _animate_tag(tag: Button, target_scale: float) -> void:
 	create_tween().tween_property(tag, "scale", Vector2.ONE * target_scale, 0.12)
 
 
-## Maps each tag's image-fraction position through the map's cover-scaling onto the screen.
+## Maps houses and tags through the map's cover-scaling onto the screen.
 func _place_tags() -> void:
 	var map_size: Vector2 = GameState.MAP_TEXTURE.get_size()
 	var cover: float = maxf(size.x / map_size.x, size.y / map_size.y)
 	var offset: Vector2 = (size - map_size * cover) * 0.5
+	for character_id in _houses:
+		var house: MapHouse = _houses[character_id]
+		house.position = offset + (HOUSES[character_id]["position"] as Vector2) * cover
+		house.size = house.texture.get_size() * cover
 	for character_id in _tags:
 		var tag: Button = _tags[character_id]
 		var fraction: Vector2 = GameState.get_character(character_id).get("map_pos", Vector2(0.5, 0.5))

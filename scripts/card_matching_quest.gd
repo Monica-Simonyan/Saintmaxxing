@@ -11,6 +11,7 @@ const GRID_COLUMNS: int = 4
 const CARD_GAP: int = 16
 const MISMATCH_PEEK_SECONDS: float = 0.8
 const MAX_TURNS: int = 10
+const NOTICE_FONT_SIZE: int = 36
 const SHUFFLE_SECONDS: float = 0.5
 
 var _cards: Array[QuestCard] = []
@@ -32,6 +33,19 @@ func _ready() -> void:
 	_grid.add_theme_constant_override("h_separation", CARD_GAP)
 	_grid.add_theme_constant_override("v_separation", CARD_GAP)
 	center.add_child(_grid)
+
+	var notice := Label.new()
+	notice.text = Localization.t("ui.attempts") % MAX_TURNS
+	notice.add_theme_font_override("font", GameState.STORY_FONT)
+	notice.add_theme_font_size_override("font_size", NOTICE_FONT_SIZE)
+	notice.add_theme_color_override("font_color", QuestHud.VALUE_COLOR)
+	notice.add_theme_color_override("font_outline_color", QuestHud.VALUE_OUTLINE_COLOR)
+	notice.add_theme_constant_override("outline_size", QuestHud.VALUE_OUTLINE_SIZE)
+	notice.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	notice.offset_top = 20.0
+	notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	notice.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(notice)
 
 	_hud = QuestHud.new()
 	add_child(_hud)
