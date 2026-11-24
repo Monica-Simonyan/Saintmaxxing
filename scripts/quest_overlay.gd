@@ -29,6 +29,8 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP  # keeps clicks from reaching the dialogue underneath
 	add_to_group(GameState.QUEST_GROUP)
 	StatsHud.set_forced_hidden(true)
+	GameState.view_changed.emit()
+	tree_exited.connect(GameState.view_changed.emit)  # by then the node has left the group
 
 
 func _exit_tree() -> void:

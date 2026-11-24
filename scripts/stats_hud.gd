@@ -64,32 +64,43 @@ func _ready() -> void:
 	_tooltip.add_child(_tooltip_label)
 	add_child(_tooltip)
 
+	_row.item_rect_changed.connect(_fit_plate)
+	GameState.view_changed.connect(_refresh_visibility)
+	_fit_plate.call_deferred()
+	_refresh_visibility.call_deferred()  # the first scene is not in the tree yet
 
-func _process(_delta: float) -> void:
+
+## Hides the bar on the menu, the monologue and in dialogues, and plays the stat changes that piled up while it was away.
+func _refresh_visibility() -> void:
 	var scene := get_tree().current_scene
 	var in_dialogue: bool = scene != null and scene.scene_file_path == GameState.DIALOGUE_SCENE
 	var shown: bool = not GameState.is_intro_scene() and not in_dialogue and not _forced_hidden
 	_row.visible = shown
 	_plate.visible = shown
-	if shown:
-		var rect := _row.get_global_rect()
-		_plate.position = Vector2(rect.position.x - PLATE_PADDING.x, -PLATE_PADDING.y)
-		_plate.size = Vector2(rect.size.x + PLATE_PADDING.x + PLATE_PADDING.z, rect.end.y + PLATE_PADDING.w)
 	if not shown:
 		_tooltip.visible = false
 	elif not _pending_changes.is_empty() and not _showing_popups:
 		_show_delta_popups()
 
 
+## The plate follows the row, which changes size with its scores and the window.
+func _fit_plate() -> void:
+	var rect := _row.get_global_rect()
+	_plate.position = Vector2(rect.position.x - PLATE_PADDING.x, -PLATE_PADDING.y)
+	_plate.size = Vector2(rect.size.x + PLATE_PADDING.x + PLATE_PADDING.z, rect.end.y + PLATE_PADDING.w)
+
+
 ## Hides the bar, e.g. while a full-screen ending scene is shown.
 func set_forced_hidden(value: bool) -> void:
 	_forced_hidden = value
+	_refresh_visibility()
 
 
 func _on_stat_changed(stat_id: String, _value: int, applied_delta: int) -> void:
 	_refresh(stat_id)
 	if applied_delta != 0:
 		_pending_changes[stat_id] = int(_pending_changes.get(stat_id, 0)) + applied_delta
+		_refresh_visibility()
 
 
 func _show_delta_popups() -> void:

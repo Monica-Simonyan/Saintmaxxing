@@ -27,6 +27,8 @@ const CHARACTER_ORDER: Array[String] = [
 ]
 
 signal stat_changed(stat_id: String, value: int, applied_delta: int)
+## The scene or the set of open mini-games changed; the HUD and pause button re-decide what to show.
+signal view_changed
 
 const STAT_MAX: int = 100
 const STAT_START: int = 50
@@ -45,6 +47,10 @@ var quest_levels: Dictionary = {}  # character id -> highest level cleared in a 
 var _quest_deck: Array[int] = []  # card kind (index into QUEST_CARD_TEXTURES) per grid slot
 
 var characters: Dictionary = CharacterData.ALL.duplicate(true)
+
+
+func _ready() -> void:
+	get_tree().scene_changed.connect(view_changed.emit)
 
 
 func complete_quest(character_id: String) -> void:

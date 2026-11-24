@@ -17,7 +17,7 @@ unset GH_TOKEN GITHUB_TOKEN GIT_ASKPASS GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT G
 export GIT_TERMINAL_PROMPT=0
 
 cd "$(git rev-parse --show-toplevel)"
-rsync -a --exclude .git --exclude .godot --exclude build "$SRC/" ./
+rsync -a --delete --exclude .git --exclude .godot --exclude build --exclude tools --exclude VERSION --exclude .github --exclude .DS_Store --exclude docs/VERSIONING.md --exclude docs/PRODUCT_AND_ENGINEERING_SPEC.md "$SRC/" ./
 git add -A
 
 if git diff --cached --quiet; then

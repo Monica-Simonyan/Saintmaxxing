@@ -60,6 +60,8 @@ func _ready() -> void:
 	box.add_child(_exit_button)
 	Localization.language_changed.connect(_apply_language)
 	_set_ending_mode(false)
+	GameState.view_changed.connect(_refresh_buttons)
+	_refresh_buttons.call_deferred()  # the first scene is not in the tree yet
 
 
 func _make_menu_button(on_pressed: Callable) -> Button:
@@ -95,7 +97,7 @@ func _beige_style(color: Color) -> StyleBoxFlat:
 	return style
 
 
-func _process(_delta: float) -> void:
+func _refresh_buttons() -> void:
 	var intro: bool = GameState.is_intro_scene()
 	var in_quest: bool = not get_tree().get_nodes_in_group(GameState.QUEST_GROUP).is_empty()
 	_button.visible = not intro and not in_quest and not _overlay.visible
@@ -154,11 +156,13 @@ func _go_back() -> void:
 func _pause() -> void:
 	_overlay.visible = true
 	get_tree().paused = true
+	_refresh_buttons()
 
 
 func _resume() -> void:
 	_overlay.visible = false
 	get_tree().paused = false
+	_refresh_buttons()
 
 
 func _restart() -> void:
