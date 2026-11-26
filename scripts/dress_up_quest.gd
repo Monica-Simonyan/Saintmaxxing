@@ -23,12 +23,16 @@ const WISHES: Array[Dictionary] = [
 	{"text": "harlot.wish-lace", "top": "lace_top", "bottom": "lace_bottom"},
 	{"text": "harlot.wish-ruffle", "top": "pink_top", "bottom": "pink_bottom"},
 ]
-const WISH_FONT_SIZE: int = 32
-const WISH_TOP_MARGIN: float = 6.0
-const WISH_WIDTH: float = 520.0
-const WISH_COLOR: Color = Color(0.98, 0.92, 0.85)
-const WISH_OUTLINE_COLOR: Color = Color(0.1, 0.04, 0.08)
-const WISH_OUTLINE_SIZE: int = 8
+const BUBBLE_TEXTURE: Texture2D = preload("res://assets/ui/speech_bubble.png")
+const BUBBLE_REGION: Rect2 = Rect2(169, 244, 1683, 595)
+const BUBBLE_SIZE: Vector2 = Vector2(300, 120)
+const BUBBLE_OFFSET: Vector2 = Vector2(70, 70)  # top-left of the bubble from the maiden's centre, beside her face
+const BUBBLE_TEXT_INSET: Vector4 = Vector4(34, 10, 28, 34)  # left, top, right, bottom; the tail takes the bottom
+const WISH_FONT_SIZE: int = 22
+const POP_SECONDS: float = 0.35
+const POP_START_SCALE: float = 0.6
+const NUDGE_DISTANCE: float = 12.0
+const NUDGE_SECONDS: float = 0.06
 const CANVAS_RATIO: float = 16.0 / 9.0  # every layer PNG is a 1920x1080 canvas
 const STAGE_CENTER: float = 0.3  # horizontal centre of the maiden, as a fraction of the screen
 const PANEL_LEFT: float = 0.58  # where the clothes panel starts, as a fraction of the screen width
@@ -42,7 +46,9 @@ var _wish: Dictionary
 var _worn: Dictionary = {}  # slot -> item name
 var _slot_layers: Dictionary = {}  # slot -> TextureRect
 var _item_buttons: Dictionary = {}  # item name -> Button
+var _wish_bubble: TextureRect
 var _wish_label: Label
+var _bubble_tween: Tween
 
 
 func _ready() -> void:
@@ -50,7 +56,7 @@ func _ready() -> void:
 	_dim = _add_backdrop(DIM_COLOR)  # _flash_miss flashes it
 	_build_stage()
 	_build_panel()
-	_build_wish_label()
+	_build_wish_bubble()
 	_start_round()
 
 
@@ -66,20 +72,55 @@ func _build_stage() -> void:
 		_slot_layers[slot] = _add_layer(stage, null)
 
 
-func _build_wish_label() -> void:
-	_wish_label = Label.new()
-	var label := _wish_label
-	label.add_theme_font_override("font", GameState.STORY_FONT)
-	label.add_theme_font_size_override("font_size", WISH_FONT_SIZE)
-	label.add_theme_color_override("font_color", WISH_COLOR)
-	label.add_theme_color_override("font_outline_color", WISH_OUTLINE_COLOR)
-	label.add_theme_constant_override("outline_size", WISH_OUTLINE_SIZE)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.size = Vector2(WISH_WIDTH, 0.0)
-	label.position = Vector2(size.x * STAGE_CENTER - WISH_WIDTH / 2.0, WISH_TOP_MARGIN)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(label)
+func _build_wish_bubble() -> void:
+	var texture := AtlasTexture.new()
+	texture.atlas = BUBBLE_TEXTURE
+	texture.region = BUBBLE_REGION
+	_wish_bubble = TextureRect.new()
+	_wish_bubble.texture = texture
+	_wish_bubble.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_wish_bubble.stretch_mode = TextureRect.STRETCH_SCALE
+	_wish_bubble.size = BUBBLE_SIZE
+	_wish_bubble.position = _bubble_home()
+	_wish_bubble.pivot_offset = Vector2(0.0, BUBBLE_SIZE.y)  # grows out of the tail
+	_wish_bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_wish_bubble)
+
+	_wish_label = CloudLabel.create("", WISH_FONT_SIZE)
+	_wish_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_wish_label.offset_left = BUBBLE_TEXT_INSET.x
+	_wish_label.offset_top = BUBBLE_TEXT_INSET.y
+	_wish_label.offset_right = -BUBBLE_TEXT_INSET.z
+	_wish_label.offset_bottom = -BUBBLE_TEXT_INSET.w
+	_wish_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wish_bubble.add_child(_wish_label)
+
+
+func _bubble_home() -> Vector2:
+	return Vector2(size.x * STAGE_CENTER, 0.0) + BUBBLE_OFFSET
+
+
+## The bubble springs out of its tail whenever the maiden voices a new wish.
+func _pop_wish_bubble() -> void:
+	if _bubble_tween:
+		_bubble_tween.kill()
+	_wish_bubble.position = _bubble_home()
+	_wish_bubble.scale = Vector2.ONE * POP_START_SCALE
+	_wish_bubble.modulate.a = 0.0
+	_bubble_tween = create_tween().set_parallel()
+	_bubble_tween.tween_property(_wish_bubble, "scale", Vector2.ONE, POP_SECONDS) \
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_bubble_tween.tween_property(_wish_bubble, "modulate:a", 1.0, POP_SECONDS)
+
+
+## A wrong outfit makes the bubble shake, restating what she asked for.
+func _nudge_wish_bubble() -> void:
+	if _bubble_tween:
+		_bubble_tween.kill()
+	var home_x := _bubble_home().x
+	_bubble_tween = create_tween()
+	for offset in [NUDGE_DISTANCE, -NUDGE_DISTANCE, NUDGE_DISTANCE / 2.0, 0.0]:
+		_bubble_tween.tween_property(_wish_bubble, "position:x", home_x + offset, NUDGE_SECONDS)
 
 
 func _add_layer(parent: Control, texture: Texture2D) -> TextureRect:
@@ -141,6 +182,7 @@ func _on_finish() -> void:
 		_offer_finish([_continue_option(), _replay_option()])
 	else:
 		_flash_miss()
+		_nudge_wish_bubble()
 
 
 ## A new wish and the default outfit.
@@ -151,6 +193,7 @@ func _on_retry() -> void:
 func _start_round() -> void:
 	_wish = WISHES.pick_random()
 	_wish_label.text = Localization.t(_wish.text)
+	_pop_wish_bubble()
 	for slot in DEFAULT_OUTFIT:
 		_wear(slot, DEFAULT_OUTFIT[slot])
 

@@ -19,10 +19,12 @@ var _pulse: float = 0.0  # 0 to 1
 func set_pellets(tiles: Array[Vector2i]) -> void:
 	_pellets = tiles
 	size = MazeGrid.pixel_size()
+	queue_redraw()
 
 
 func remove_pellet(tile: Vector2i) -> void:
 	_pellets.erase(tile)
+	queue_redraw()
 
 
 func show_gem(tile: Vector2i) -> void:
@@ -32,6 +34,7 @@ func show_gem(tile: Vector2i) -> void:
 
 func hide_gem() -> void:
 	_has_gem = false
+	queue_redraw()
 
 
 func _process(_delta: float) -> void:
