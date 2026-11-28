@@ -26,6 +26,8 @@ Follow this for every new character so they all behave and look alike.
 	"start_node": "start",
 	"start_scene": "res://assets/characters/harlot/harlot_pure.png",    # illustrated layout: background
 	"start_layers": ["res://assets/characters/harlot/harlot_failed.png"],  # optional transparent layers over it
+	"bubble_texture": "res://assets/characters/priest/priest_bubble.png",  # optional: own cloud art; default is GameState.SPEECH_BUBBLE_TEXTURE
+	"outcome_overlays": {"converted": "res://assets/map/church_good.png", "spared": "res://assets/map/church_bad.png"},  # optional: full-map art painted once the conversation ends
 	"bubble_rect": Rect2(270, 20, 480, 190),   # optional: NPC cloud position
 	"choices_rect": Rect2(770, 40, 360, 270),  # optional: choices cloud position
 	"choices_opacity": 1.0,                    # optional
@@ -99,7 +101,8 @@ dialogue come from the character data. Used by every character (Rose, priest, wi
 
 - Font: Eleanora for names, monologue and outcome text.
 - Every `BaseButton` click plays a sound automatically (`Audio`).
-- `StatsHud` hidden on the menu, monologue and ending scenes.
+- `StatsHud` (top-centre) is hidden on the menu, monologue and in every dialogue scene, including endings; it shows on the map and over the mini-games' end screens only when a stat changes.
+- An `outcome_overlays` image is a transparent 1920x1080 PNG; the map draws it over the background once the conversation ends. Pick `converted`/`spared` by what the art shows (the vampire's `converted` is the bad ending).
 - No stat numbers outside a character's `effects`.
 
 ## 7. Checklist for a new character
@@ -108,7 +111,7 @@ dialogue come from the character data. Used by every character (Rose, priest, wi
 2. Add the data block with `map_pos` and `effects`.
 3. Transcribe nodes verbatim; every `next` must exist.
 4. Add art to `assets/`, run `Godot --headless --import`.
-5. Set `start_scene`, `start_layers` and cloud rects.
+5. Set `start_scene`, `start_layers`, `outcome_overlays` and cloud rects.
 6. Validate: headless run with no script errors; walk every branch to an ending; check
    text fit, stat changes and the lock.
 7. Screenshot each ending and the map tag.

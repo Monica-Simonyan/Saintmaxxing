@@ -8,6 +8,8 @@ const MAP_SCENE: String = "res://scenes/map.tscn"
 const MAP_TEXTURE: Texture2D = preload("res://assets/map/map.png")
 const STORY_FONT: Font = preload("res://assets/fonts/Eleanora.ttf")
 const DIALOGUE_FONT: Font = preload("res://assets/fonts/Dumbledor.ttf")
+const SPEECH_BUBBLE_TEXTURE: Texture2D = preload("res://assets/ui/speech_bubble.png")
+const SPEECH_BUBBLE_REGION: Rect2 = Rect2(169, 244, 1683, 595)  # the cloud inside the sheet
 const DIALOGUE_SCENE: String = "res://scenes/dialogue.tscn"
 const QUEST_CARD_TEXTURES: Array[Texture2D] = [
 	preload("res://assets/quest/card_skull.png"),
@@ -36,6 +38,7 @@ const STAT_START: int = 50
 var stats: Dictionary = {"love": STAT_START, "faith": STAT_START, "justice": STAT_START, "magic": STAT_START}
 var selected_character_id: String = "priest"
 var completed_conversations: Dictionary = {}
+var conversation_outcomes: Dictionary = {}  # character_id -> "converted" or "spared"
 var map_intro_shown: bool = false
 # Progress kept while the player steps away (back button, quest); cleared by reset_state().
 var dialogue_progress: Dictionary = {}  # character id -> dialogue node key
@@ -65,6 +68,7 @@ func reset_state() -> void:
 	stats = {"love": STAT_START, "faith": STAT_START, "justice": STAT_START, "magic": STAT_START}
 	selected_character_id = "priest"
 	completed_conversations = {}
+	conversation_outcomes = {}
 	map_intro_shown = false
 	_quest_deck = []
 	dialogue_progress = {}
@@ -97,6 +101,7 @@ func finish_conversation(outcome: String) -> void:
 	if is_conversation_completed(selected_character_id):
 		return
 	completed_conversations[selected_character_id] = true
+	conversation_outcomes[selected_character_id] = outcome
 	var effects: Dictionary = get_selected_character().get("effects", {}).get(outcome, {})
 	for stat_id in effects:
 		change_stat(stat_id, effects[stat_id])

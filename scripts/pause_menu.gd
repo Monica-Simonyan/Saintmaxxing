@@ -2,6 +2,24 @@ extends CanvasLayer
 ## Pause button plus a gray overlay with Resume/Restart (Autoload: PauseMenu).
 ## Hidden on the menu and the unicorn monologue.
 
+const BACK_BUTTON_POS: Vector2 = Vector2(16, 10)
+const PAUSE_BUTTON_POS: Vector2 = Vector2(64, 10)
+const CORNER_BUTTON_SIZE: Vector2 = Vector2(40, 40)
+const MENU_BUTTON_SIZE: Vector2 = Vector2(220, 56)
+const LANGUAGE_BUTTON_SIZE: Vector2 = Vector2(150, 44)
+const LANGUAGE_FONT_SIZE: int = 20
+const TITLE_FONT_SIZE: int = 36
+const OVERLAY_COLOR: Color = Color(0.25, 0.25, 0.25, 0.8)
+const MENU_GAP: int = 14
+const LANGUAGE_GAP: int = 12
+const BEIGE_NORMAL: Color = Color(0.91, 0.84, 0.70)
+const BEIGE_HOVER: Color = Color(0.96, 0.90, 0.78)
+const BEIGE_PRESSED: Color = Color(0.82, 0.74, 0.60)
+const BEIGE_BORDER: Color = Color(0.62, 0.50, 0.36)
+const BEIGE_TEXT: Color = Color(0.30, 0.20, 0.12)
+const BEIGE_RADIUS: int = 8
+const BEIGE_BORDER_WIDTH: int = 2
+
 var _button: Button
 var _back_button: Button
 var _overlay: ColorRect
@@ -17,11 +35,11 @@ func _ready() -> void:
 	layer = 101
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
-	_back_button = _make_corner_button("←", Vector2(16, 10), _go_back)
-	_button = _make_corner_button("II", Vector2(64, 10), _pause)
+	_back_button = _make_corner_button("←", BACK_BUTTON_POS, _go_back)
+	_button = _make_corner_button("II", PAUSE_BUTTON_POS, _pause)
 
 	_overlay = ColorRect.new()
-	_overlay.color = Color(0.25, 0.25, 0.25, 0.8)
+	_overlay.color = OVERLAY_COLOR
 	_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	_overlay.visible = false
@@ -32,22 +50,22 @@ func _ready() -> void:
 	_overlay.add_child(center)
 
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 14)
+	box.add_theme_constant_override("separation", MENU_GAP)
 	center.add_child(box)
 
 	_title = Label.new()
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_title.add_theme_font_size_override("font_size", 36)
+	_title.add_theme_font_size_override("font_size", TITLE_FONT_SIZE)
 	box.add_child(_title)
 
 	var languages := HBoxContainer.new()
 	languages.alignment = BoxContainer.ALIGNMENT_CENTER
-	languages.add_theme_constant_override("separation", 12)
+	languages.add_theme_constant_override("separation", LANGUAGE_GAP)
 	box.add_child(languages)
 	for code in Localization.LANGUAGES:
 		var language_button := Button.new()
-		language_button.custom_minimum_size = Vector2(150, 44)
-		MenuButtonStyle.apply(language_button, 20)
+		language_button.custom_minimum_size = LANGUAGE_BUTTON_SIZE
+		MenuButtonStyle.apply(language_button, LANGUAGE_FONT_SIZE)
 		language_button.pressed.connect(Localization.set_language.bind(code))
 		languages.add_child(language_button)
 		_language_buttons[code] = language_button
@@ -66,7 +84,7 @@ func _ready() -> void:
 
 func _make_menu_button(on_pressed: Callable) -> Button:
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(220, 56)
+	button.custom_minimum_size = MENU_BUTTON_SIZE
 	MenuButtonStyle.apply(button)
 	button.pressed.connect(on_pressed)
 	return button
@@ -75,15 +93,15 @@ func _make_menu_button(on_pressed: Callable) -> Button:
 func _make_corner_button(label: String, pos: Vector2, on_pressed: Callable) -> Button:
 	var button := Button.new()
 	button.text = label
-	button.custom_minimum_size = Vector2(40, 40)
+	button.custom_minimum_size = CORNER_BUTTON_SIZE
 	button.position = pos
 	button.pressed.connect(on_pressed)
-	button.add_theme_stylebox_override("normal", _beige_style(Color(0.91, 0.84, 0.70)))
-	button.add_theme_stylebox_override("hover", _beige_style(Color(0.96, 0.90, 0.78)))
-	button.add_theme_stylebox_override("pressed", _beige_style(Color(0.82, 0.74, 0.60)))
+	button.add_theme_stylebox_override("normal", _beige_style(BEIGE_NORMAL))
+	button.add_theme_stylebox_override("hover", _beige_style(BEIGE_HOVER))
+	button.add_theme_stylebox_override("pressed", _beige_style(BEIGE_PRESSED))
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	for color_name in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
-		button.add_theme_color_override(color_name, Color(0.30, 0.20, 0.12))
+		button.add_theme_color_override(color_name, BEIGE_TEXT)
 	add_child(button)
 	return button
 
@@ -91,9 +109,9 @@ func _make_corner_button(label: String, pos: Vector2, on_pressed: Callable) -> B
 func _beige_style(color: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = color
-	style.set_corner_radius_all(8)
-	style.set_border_width_all(2)
-	style.border_color = Color(0.62, 0.50, 0.36)
+	style.set_corner_radius_all(BEIGE_RADIUS)
+	style.set_border_width_all(BEIGE_BORDER_WIDTH)
+	style.border_color = BEIGE_BORDER
 	return style
 
 

@@ -87,6 +87,17 @@ const SHAKE_STEP_SECONDS: float = 0.04
 const WIN_FONT_SIZE: int = 72
 const WIN_SECONDS: float = 1.2
 const RETRY_FADE_SECONDS: float = 0.5
+const HIT_COLOR: Color = Color(0.85, 0.1, 0.15)
+const HIT_FLASH_COLOR: Color = Color(1.0, 0.3, 0.3)
+const HIT_FLASH_SECONDS: float = 0.05
+const HIT_FADE_SECONDS: float = 0.1
+const BLINK_ALPHA: float = 0.35
+const BURST_SPEED_RANGE: Vector2 = Vector2(80.0, 260.0)
+const BURST_SIZE_RANGE: Vector2 = Vector2(3.0, 7.0)
+const MOTE_SECONDS: float = 8.0
+const MOTE_SPEED_RANGE: Vector2 = Vector2(8.0, 28.0)
+const MOTE_SIZE_RANGE: Vector2 = Vector2(1.5, 4.0)
+const MOTE_COLOR: Color = Color(0.9, 0.2, 0.25, 0.35)
 const HELP_FONT_SIZE: int = 36
 const HELP_WIDTH: float = 760.0
 const HELP_PADDING: int = 36
@@ -164,7 +175,28 @@ func _ready() -> void:
 	var bats := BatFlock.new()
 	bats.color = BAT_COLOR
 	add_child(bats)
+	_build_world()
+	_hiss = _make_player(HISS_SOUND)
+	_eat_player = _make_player(EAT_SOUND)
+	_pellet_player = _make_player(PELLET_SOUND)
+	_gem_player = _make_player(GEM_SOUND)
+	_saved_best = _load_best()
+	_best_score = _saved_best
 
+	_hud = QuestHud.new(MAX_HITS)
+	add_child(_hud)
+	resized.connect(_center_maze)
+	_center_maze()
+	_level = mini(_cleared_level() + 1, LEVEL_COUNT)  # the hint icon continues where the player left off
+	_start_round()
+	if _level == 1:
+		_show_help()
+	else:
+		_announce_level()
+
+
+## The shakeable world: pulsing rails, dots, pellets and the unicorn, all inside the scaled maze.
+func _build_world() -> void:
 	_world = Control.new()
 	_world.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_world.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -187,23 +219,6 @@ func _ready() -> void:
 	_maze.add_child(_pulse_view)
 
 	_unicorn = _make_unicorn()
-	_hiss = _make_player(HISS_SOUND)
-	_eat_player = _make_player(EAT_SOUND)
-	_pellet_player = _make_player(PELLET_SOUND)
-	_gem_player = _make_player(GEM_SOUND)
-	_saved_best = _load_best()
-	_best_score = _saved_best
-
-	_hud = QuestHud.new(MAX_HITS)
-	add_child(_hud)
-	resized.connect(_center_maze)
-	_center_maze()
-	_level = mini(_cleared_level() + 1, LEVEL_COUNT)  # the hint icon continues where the player left off
-	_start_round()
-	if _level == 1:
-		_show_help()
-	else:
-		_announce_level()
 
 
 func _make_player(stream: AudioStream) -> AudioStreamPlayer:
@@ -600,14 +615,14 @@ func _on_hit(enemy: Enemy) -> void:
 	_hud.lose_heart(_hits - 1)
 	_flash_miss()
 	_shake()
-	_burst(_walker_position(_unicorn_walker), Color(0.85, 0.1, 0.15), BURST_COUNT)
+	_burst(_walker_position(_unicorn_walker), HIT_COLOR, BURST_COUNT)
 	_vanish_copy(enemy)
 	_hiss.play()
 	if _hits >= MAX_HITS:
 		_over = true
 		_save_best()
 		if _level > 1:
-			_offer_finish([{"text": Localization.t("ui.retry"), "action": _on_retry}, _continue_option()])
+			_offer_finish([{"text": Localization.t("ui.retry"), "action": _start_round}, _continue_option()])
 		else:
 			_offer_retry()
 			_retry_button.modulate.a = 0.0
@@ -656,10 +671,10 @@ func _burst(at: Vector2, color: Color, count: int) -> void:
 	burst.direction = Vector2.UP
 	burst.spread = 180.0
 	burst.gravity = Vector2.ZERO
-	burst.initial_velocity_min = 80.0
-	burst.initial_velocity_max = 260.0
-	burst.scale_amount_min = 3.0
-	burst.scale_amount_max = 7.0
+	burst.initial_velocity_min = BURST_SPEED_RANGE.x
+	burst.initial_velocity_max = BURST_SPEED_RANGE.y
+	burst.scale_amount_min = BURST_SIZE_RANGE.x
+	burst.scale_amount_max = BURST_SIZE_RANGE.y
 	burst.color = color
 	_maze.add_child(burst)
 	get_tree().create_timer(BURST_SECONDS + 0.2).timeout.connect(burst.queue_free)
@@ -668,11 +683,11 @@ func _burst(at: Vector2, color: Color, count: int) -> void:
 ## The unicorn flashes red, then blinks for the rest of the grace period.
 func _blink_unicorn() -> void:
 	var tween := create_tween()
-	tween.tween_property(_unicorn, "modulate", Color(1.0, 0.3, 0.3), 0.05)
-	tween.tween_property(_unicorn, "modulate", Color.WHITE, 0.1)
+	tween.tween_property(_unicorn, "modulate", HIT_FLASH_COLOR, HIT_FLASH_SECONDS)
+	tween.tween_property(_unicorn, "modulate", Color.WHITE, HIT_FADE_SECONDS)
 	var blinks: int = int(HURT_SECONDS / (HURT_BLINK_SECONDS * 2.0))
 	for i in blinks:
-		tween.tween_property(_unicorn, "modulate:a", 0.35, HURT_BLINK_SECONDS)
+		tween.tween_property(_unicorn, "modulate:a", BLINK_ALPHA, HURT_BLINK_SECONDS)
 		tween.tween_property(_unicorn, "modulate:a", 1.0, HURT_BLINK_SECONDS)
 
 
@@ -750,10 +765,6 @@ func _offer_next_steps() -> void:
 
 func _cleared_level() -> int:
 	return GameState.quest_levels.get(GameState.selected_character_id, 0)
-
-
-func _on_retry() -> void:
-	_start_round()
 
 
 func _start_level(level: int) -> void:
@@ -848,16 +859,16 @@ func _add_motes() -> void:
 	var motes := CPUParticles2D.new()
 	motes.position = size / 2.0
 	motes.amount = MOTE_COUNT
-	motes.lifetime = 8.0
-	motes.preprocess = 8.0
+	motes.lifetime = MOTE_SECONDS
+	motes.preprocess = MOTE_SECONDS
 	motes.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
 	motes.emission_rect_extents = size / 2.0
 	motes.direction = Vector2.UP
 	motes.spread = 25.0
 	motes.gravity = Vector2.ZERO
-	motes.initial_velocity_min = 8.0
-	motes.initial_velocity_max = 28.0
-	motes.scale_amount_min = 1.5
-	motes.scale_amount_max = 4.0
-	motes.color = Color(0.9, 0.2, 0.25, 0.35)
+	motes.initial_velocity_min = MOTE_SPEED_RANGE.x
+	motes.initial_velocity_max = MOTE_SPEED_RANGE.y
+	motes.scale_amount_min = MOTE_SIZE_RANGE.x
+	motes.scale_amount_max = MOTE_SIZE_RANGE.y
+	motes.color = MOTE_COLOR
 	add_child(motes)

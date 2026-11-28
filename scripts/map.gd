@@ -37,6 +37,8 @@ func _ready() -> void:
 		add_child(house)
 		_houses[character_id] = house
 
+	_add_outcome_overlays()
+
 	for character_id in GameState.CHARACTER_ORDER:
 		var data: Dictionary = GameState.get_character(character_id)
 		if data.is_empty():
@@ -53,6 +55,22 @@ func _ready() -> void:
 	elif not GameState.map_intro_shown:
 		GameState.map_intro_shown = true
 		_show_scroll(func() -> String: return Localization.t("scroll.intro"))
+
+
+## Paints each finished conversation's `outcome_overlays` art over the map.
+func _add_outcome_overlays() -> void:
+	for character_id in GameState.CHARACTER_ORDER:
+		var outcome: String = GameState.conversation_outcomes.get(character_id, "")
+		var path: String = GameState.get_character(character_id).get("outcome_overlays", {}).get(outcome, "")
+		if path.is_empty():
+			continue
+		var overlay := TextureRect.new()
+		overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+		overlay.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		overlay.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		overlay.texture = load(path) as Texture2D
+		add_child(overlay)
 
 
 func _unhandled_input(event: InputEvent) -> void:

@@ -6,6 +6,20 @@ const ROW_TOP: float = 4.0
 const PLATE_TEXTURE: Texture2D = preload("res://assets/ui/stats_plate.png")
 const PLATE_CORNER: int = 26  # nine-patch margin of the plate's rounded border
 const PLATE_PADDING: Vector4 = Vector4(24.0, 0.0, 24.0, 14.0)  # left, top (it runs off-screen), right, bottom
+const POPUP_FONT_SIZE: int = 20
+const POPUP_OUTLINE_SIZE: int = 6
+const POPUP_HEIGHT: float = 28.0
+const POPUP_GAP: float = 4.0
+const POPUP_DRIFT: float = 10.0
+const POPUP_FADE_IN: float = 0.25
+const POPUP_HOLD: float = 2.0
+const POPUP_FADE_OUT: float = 0.6
+const GAIN_COLOR: Color = Color(0.45, 0.95, 0.5)
+const LOSS_COLOR: Color = Color(1.0, 0.4, 0.4)
+const OUTLINE_COLOR: Color = Color(0.05, 0.02, 0.08)
+const SCORE_FONT_SIZE: int = 11
+const SCORE_OUTLINE_SIZE: int = 4
+const TOOLTIP_MARGIN: float = 8.0
 const STATS: Array[Dictionary] = [
 	{"id": "love", "icon": "res://assets/ui/stats/love.png"},
 	{"id": "faith", "icon": "res://assets/ui/stats/faith.png"},
@@ -119,21 +133,21 @@ func _show_delta_popups() -> void:
 		var rect := box.get_global_rect()
 		var label := Label.new()
 		label.text = "%+d" % delta
-		label.add_theme_font_size_override("font_size", 20)
-		label.add_theme_color_override("font_color", Color(0.45, 0.95, 0.5) if delta > 0 else Color(1.0, 0.4, 0.4))
-		label.add_theme_color_override("font_outline_color", Color(0.05, 0.02, 0.08, 1.0))
-		label.add_theme_constant_override("outline_size", 6)
+		label.add_theme_font_size_override("font_size", POPUP_FONT_SIZE)
+		label.add_theme_color_override("font_color", GAIN_COLOR if delta > 0 else LOSS_COLOR)
+		label.add_theme_color_override("font_outline_color", OUTLINE_COLOR)
+		label.add_theme_constant_override("outline_size", POPUP_OUTLINE_SIZE)
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		label.custom_minimum_size = Vector2(rect.size.x, 28.0)
+		label.custom_minimum_size = Vector2(rect.size.x, POPUP_HEIGHT)
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label.position = Vector2(rect.position.x, rect.end.y + 4.0)
+		label.position = Vector2(rect.position.x, rect.end.y + POPUP_GAP)
 		label.modulate.a = 0.0
 		add_child(label)
 		var tween := create_tween()
-		tween.tween_property(label, "modulate:a", 1.0, 0.25)
-		tween.parallel().tween_property(label, "position:y", label.position.y + 10.0, 0.25)
-		tween.tween_interval(2.0)
-		tween.tween_property(label, "modulate:a", 0.0, 0.6)
+		tween.tween_property(label, "modulate:a", 1.0, POPUP_FADE_IN)
+		tween.parallel().tween_property(label, "position:y", label.position.y + POPUP_DRIFT, POPUP_FADE_IN)
+		tween.tween_interval(POPUP_HOLD)
+		tween.tween_property(label, "modulate:a", 0.0, POPUP_FADE_OUT)
 		tween.tween_callback(label.queue_free)
 	_showing_popups = false
 
@@ -154,9 +168,9 @@ func _make_stat(stat: Dictionary) -> Control:
 
 	var score := Label.new()
 	score.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	score.add_theme_font_size_override("font_size", 11)
-	score.add_theme_color_override("font_outline_color", Color(0.05, 0.02, 0.08, 1.0))
-	score.add_theme_constant_override("outline_size", 4)
+	score.add_theme_font_size_override("font_size", SCORE_FONT_SIZE)
+	score.add_theme_color_override("font_outline_color", OUTLINE_COLOR)
+	score.add_theme_constant_override("outline_size", SCORE_OUTLINE_SIZE)
 	score.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(score)
 	_score_labels[stat["id"]] = score
@@ -180,8 +194,8 @@ func _show_tooltip(anchor: Control, stat_id: String) -> void:
 	await get_tree().process_frame
 	var viewport_width: float = get_viewport().get_visible_rect().size.x
 	var rect := anchor.get_global_rect()
-	var x: float = clampf(rect.get_center().x - _tooltip.size.x * 0.5, 8.0, viewport_width - _tooltip.size.x - 8.0)
-	_tooltip.position = Vector2(x, rect.end.y + 8.0)
+	var x: float = clampf(rect.get_center().x - _tooltip.size.x * 0.5, TOOLTIP_MARGIN, viewport_width - _tooltip.size.x - TOOLTIP_MARGIN)
+	_tooltip.position = Vector2(x, rect.end.y + TOOLTIP_MARGIN)
 
 
 func _hide_tooltip() -> void:

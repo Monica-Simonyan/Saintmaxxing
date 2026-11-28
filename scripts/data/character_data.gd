@@ -18,6 +18,7 @@ const ALL: Dictionary = {
 		"start_node": "start",
 		"start_scene": "res://assets/characters/priest/priest_church.png",
 		"start_layers": ["res://assets/characters/priest/priest_hungry.png"],
+		"outcome_overlays": {"converted": "res://assets/map/church_good.png", "spared": "res://assets/map/church_bad.png"},  # map art once the conversation ends
 		"outcome_on_top": true,
 		"bubble_texture": "res://assets/characters/priest/priest_bubble.png",
 		"bubble_region": Rect2(217, 247, 1530, 542),
@@ -108,6 +109,7 @@ const ALL: Dictionary = {
 		"start_node": "start",
 		"start_scene": "res://assets/characters/witch/witch_room.png",
 		"start_layers": ["res://assets/characters/witch/witch_start.png"],
+		"outcome_overlays": {"converted": "res://assets/map/hut_good.png", "spared": "res://assets/map/hut_bad.png"},
 		"bubble_texture": "res://assets/characters/witch/witch_bubble.png",
 		"bubble_region": Rect2(0, 0, 915, 322),
 		"cloud_text_color": Color(0.96, 0.97, 0.94),
@@ -225,7 +227,9 @@ const ALL: Dictionary = {
 		},
 		"start_node": "start",
 		"start_scene": "res://assets/characters/vampire/vampire_room.png",
-		"start_layers": ["res://assets/characters/vampire/vampire_prisoner.png"],
+		"start_layers": ["res://assets/characters/vampire/vampire.png", "res://assets/characters/vampire/vampire_prisoner.png"],
+		# Convincing the vampire is the bad ending: he turns vigilante and the justice stat falls.
+		"outcome_overlays": {"converted": "res://assets/map/castle_bad.png", "spared": "res://assets/map/castle_good.png"},
 		"bubble_texture": "res://assets/characters/vampire/vampire_bubble.png",
 		"bubble_region": Rect2(0, 0, 987, 348),
 		"cloud_text_color": Color(0.96, 0.95, 0.98),

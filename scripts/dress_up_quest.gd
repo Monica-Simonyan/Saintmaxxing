@@ -23,8 +23,7 @@ const WISHES: Array[Dictionary] = [
 	{"text": "harlot.wish-lace", "top": "lace_top", "bottom": "lace_bottom"},
 	{"text": "harlot.wish-ruffle", "top": "pink_top", "bottom": "pink_bottom"},
 ]
-const BUBBLE_TEXTURE: Texture2D = preload("res://assets/ui/speech_bubble.png")
-const BUBBLE_REGION: Rect2 = Rect2(169, 244, 1683, 595)
+const UNDRESSED_TEXT: String = "harlot.undressed"
 const BUBBLE_SIZE: Vector2 = Vector2(300, 120)
 const BUBBLE_OFFSET: Vector2 = Vector2(70, 70)  # top-left of the bubble from the maiden's centre, beside her face
 const BUBBLE_TEXT_INSET: Vector4 = Vector4(34, 10, 28, 34)  # left, top, right, bottom; the tail takes the bottom
@@ -74,8 +73,8 @@ func _build_stage() -> void:
 
 func _build_wish_bubble() -> void:
 	var texture := AtlasTexture.new()
-	texture.atlas = BUBBLE_TEXTURE
-	texture.region = BUBBLE_REGION
+	texture.atlas = GameState.SPEECH_BUBBLE_TEXTURE
+	texture.region = GameState.SPEECH_BUBBLE_REGION
 	_wish_bubble = TextureRect.new()
 	_wish_bubble.texture = texture
 	_wish_bubble.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -192,14 +191,21 @@ func _on_retry() -> void:
 
 func _start_round() -> void:
 	_wish = WISHES.pick_random()
-	_wish_label.text = Localization.t(_wish.text)
-	_pop_wish_bubble()
 	for slot in DEFAULT_OUTFIT:
 		_wear(slot, DEFAULT_OUTFIT[slot])
+	_update_wish_text()
+	_pop_wish_bubble()
 
 
 func _on_item_toggled(pressed: bool, item: Dictionary) -> void:
 	_wear(item.slot, item.name if pressed else "")
+	_update_wish_text()
+
+
+## She voices her wish, unless she has been stripped bare and protests instead.
+func _update_wish_text() -> void:
+	var undressed: bool = SLOTS.all(func(slot: StringName) -> bool: return _worn.get(slot, "").is_empty())
+	_wish_label.text = Localization.t(UNDRESSED_TEXT if undressed else _wish.text)
 
 
 ## Puts `item_name` on `slot` (or strips the slot when empty) and syncs the grid highlights.

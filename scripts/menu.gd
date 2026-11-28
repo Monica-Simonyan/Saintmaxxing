@@ -2,6 +2,18 @@ extends Control
 
 const UNICORN_TEXTURE: Texture2D = preload("res://assets/characters/unicorn/unicorn_hair.png")
 
+const LANGUAGE_BUTTON_SIZE: Vector2 = Vector2(340, 56)
+const LANGUAGE_BUTTON_FONT_SIZE: int = 24
+const OPTION_SIZE: Vector2 = Vector2(300, 60)
+const OPTION_FONT_SIZE: int = 26
+const PLAY_FONT_SIZE: int = 28
+const MENU_GAP: int = 14
+const OPTION_GAP: int = 12
+const POPUP_DIM_COLOR: Color = Color(0, 0, 0, 0.35)
+const POPUP_PANEL_COLOR: Color = Color(1, 1, 1, 0.22)
+const POPUP_RADIUS: int = 18
+const POPUP_PADDING: int = 24
+
 @onready var play_button: Button = $CenterContainer/MarginContainer/PlayButton
 @onready var unicorn: TextureRect = $PortraitTexture
 
@@ -12,7 +24,7 @@ var _popup_buttons: Dictionary = {}  # language code -> Button
 
 
 func _ready() -> void:
-	MenuButtonStyle.apply(play_button, 28)
+	MenuButtonStyle.apply(play_button, PLAY_FONT_SIZE)
 	play_button.pressed.connect(_on_play_pressed)
 	_build_language_ui()
 	_apply_language()
@@ -27,16 +39,16 @@ func _ready() -> void:
 ## Adds a Language button under Play, and a translucent popup it opens.
 func _build_language_ui() -> void:
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 14)
+	column.add_theme_constant_override("separation", MENU_GAP)
 	var holder: Node = play_button.get_parent()
 	holder.add_child(column)
 	play_button.reparent(column, false)
 
 	_language_button = Button.new()
-	_language_button.custom_minimum_size = Vector2(340, 56)
+	_language_button.custom_minimum_size = LANGUAGE_BUTTON_SIZE
 	_language_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_language_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	MenuButtonStyle.apply(_language_button, 24)
+	MenuButtonStyle.apply(_language_button, LANGUAGE_BUTTON_FONT_SIZE)
 	_language_button.pressed.connect(_set_popup_open.bind(true))
 	column.add_child(_language_button)
 
@@ -47,7 +59,7 @@ func _build_language_ui() -> void:
 	add_child(_language_popup)
 
 	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.35)
+	dim.color = POPUP_DIM_COLOR
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_language_popup.add_child(dim)
@@ -59,20 +71,20 @@ func _build_language_ui() -> void:
 
 	var panel := PanelContainer.new()
 	var box := StyleBoxFlat.new()
-	box.bg_color = Color(1, 1, 1, 0.22)
-	box.set_corner_radius_all(18)
-	box.set_content_margin_all(24)
+	box.bg_color = POPUP_PANEL_COLOR
+	box.set_corner_radius_all(POPUP_RADIUS)
+	box.set_content_margin_all(POPUP_PADDING)
 	panel.add_theme_stylebox_override("panel", box)
 	center.add_child(panel)
 
 	var options := VBoxContainer.new()
-	options.add_theme_constant_override("separation", 12)
+	options.add_theme_constant_override("separation", OPTION_GAP)
 	panel.add_child(options)
 	for code in Localization.LANGUAGES:
 		var option := Button.new()
-		option.custom_minimum_size = Vector2(300, 60)
+		option.custom_minimum_size = OPTION_SIZE
 		option.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		MenuButtonStyle.apply(option, 26)
+		MenuButtonStyle.apply(option, OPTION_FONT_SIZE)
 		option.pressed.connect(_choose_language.bind(code))
 		options.add_child(option)
 		_popup_buttons[code] = option

@@ -3,7 +3,6 @@ extends Control
 ## and the unicorn answers from its own cloud of choices.
 
 const CHARS_PER_SECOND: float = 65.0
-const BUBBLE_REGION: Rect2 = Rect2(169, 244, 1683, 595)
 const BUBBLE_RECT: Rect2 = Rect2(380, 20, 520, 200)
 const CHOICES_RECT: Rect2 = Rect2(520, 430, 520, 270)
 const UNICORN_BLEED: float = 104.0
@@ -26,6 +25,22 @@ const CLOUD_TEXT_COLOR: Color = CloudLabel.TEXT_COLOR
 const LOCK_ICON: Texture2D = preload("res://assets/ui/lock.png")
 const UNICORN_TEXTURE: Texture2D = preload("res://assets/characters/unicorn/unicorn.png")
 const LOCK_SIZE: Vector2 = Vector2(72, 84)
+const BUBBLE_TEXT_PADDING_X: Vector2 = Vector2(56, 40)  # left and right padding of the speech text
+const CHOICE_GAP: int = 6
+const CHOICE_PADDING: Vector2 = Vector2(12, 5)  # horizontal, vertical content margin of a choice pill
+const CHOICE_CORNER_RADIUS: int = 10
+const OUTCOME_MARGIN_X: float = 80.0
+const OUTCOME_MARGIN_Y: float = 30.0
+const OUTCOME_HEIGHT: float = 200.0
+const OUTCOME_PANEL_COLOR: Color = Color(0.1, 0.03, 0.12, 0.82)
+const OUTCOME_TEXT_COLOR: Color = Color(0.98, 0.93, 0.85)
+const OUTCOME_PANEL_RADIUS: int = 14
+const OUTCOME_PANEL_PADDING: int = 24
+const SPARKLE_ORIGIN: Vector2 = Vector2(640, 760)
+const SPARKLE_SPREAD_EXTENTS: Vector2 = Vector2(660, 10)
+const SPARKLE_LIFETIME: float = 2.2
+const SPARKLE_COLORS: PackedColorArray = [Color(1, 0.95, 0.75, 0.0), Color(1, 0.95, 0.75, 1.0), Color(1, 0.85, 0.95, 0.0)]
+const SPARKLE_OFFSETS: PackedFloat32Array = [0.0, 0.25, 1.0]
 const CHOICE_ALPHA: Dictionary = {"normal": 0.3, "hover": 0.55, "pressed": 0.7, "focus": 0.3}
 
 var _dialogue_nodes: Dictionary = {}
@@ -96,8 +111,8 @@ func _build_ui(data: Dictionary) -> void:
 
 	_cloud_tex = AtlasTexture.new()
 	var cloud_tex := _cloud_tex
-	cloud_tex.atlas = load(data.get("bubble_texture", "res://assets/ui/speech_bubble.png")) as Texture2D
-	cloud_tex.region = data.get("bubble_region", BUBBLE_REGION)
+	cloud_tex.atlas = load(data["bubble_texture"]) as Texture2D if data.has("bubble_texture") else GameState.SPEECH_BUBBLE_TEXTURE
+	cloud_tex.region = data.get("bubble_region", GameState.SPEECH_BUBBLE_REGION)
 
 	_bubble = _make_cloud(cloud_tex, data.get("bubble_rect", BUBBLE_RECT), CLOUD_OPACITY, false)
 	_bubble_text = _make_bubble_text(data.get("cloud_text_color", CLOUD_TEXT_COLOR))
@@ -140,8 +155,8 @@ func _make_cloud(texture: Texture2D, rect: Rect2, opacity: float, mirrored: bool
 func _make_bubble_text(color: Color) -> RichTextLabel:
 	var label := RichTextLabel.new()
 	label.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	label.offset_left = 56.0
-	label.offset_right = -40.0
+	label.offset_left = BUBBLE_TEXT_PADDING_X.x
+	label.offset_right = -BUBBLE_TEXT_PADDING_X.y
 	label.offset_top = TEXT_TOP
 	label.offset_bottom = TEXT_TOP + TEXT_AREA_HEIGHT
 	label.scroll_active = false
@@ -185,7 +200,7 @@ func _make_choices_box() -> VBoxContainer:
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.size_flags_vertical = Control.SIZE_EXPAND_FILL  # fills the scroll so short lists stay centred
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.add_theme_constant_override("separation", 6)
+	box.add_theme_constant_override("separation", CHOICE_GAP)
 	return box
 
 
@@ -193,16 +208,16 @@ func _make_choices_box() -> VBoxContainer:
 func _build_outcome_panel(text_on_top: bool) -> void:
 	_outcome_panel = PanelContainer.new()
 	_outcome_panel.set_anchors_preset(Control.PRESET_TOP_WIDE if text_on_top else Control.PRESET_BOTTOM_WIDE)
-	_outcome_panel.offset_left = 80.0
-	_outcome_panel.offset_right = -80.0
-	_outcome_panel.offset_top = 30.0 if text_on_top else -230.0
-	_outcome_panel.offset_bottom = 230.0 if text_on_top else -30.0
+	_outcome_panel.offset_left = OUTCOME_MARGIN_X
+	_outcome_panel.offset_right = -OUTCOME_MARGIN_X
+	_outcome_panel.offset_top = OUTCOME_MARGIN_Y if text_on_top else -(OUTCOME_MARGIN_Y + OUTCOME_HEIGHT)
+	_outcome_panel.offset_bottom = OUTCOME_MARGIN_Y + OUTCOME_HEIGHT if text_on_top else -OUTCOME_MARGIN_Y
 	_outcome_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_outcome_panel.visible = false
 	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.1, 0.03, 0.12, 0.82)
-	panel_style.set_corner_radius_all(14)
-	panel_style.set_content_margin_all(24)
+	panel_style.bg_color = OUTCOME_PANEL_COLOR
+	panel_style.set_corner_radius_all(OUTCOME_PANEL_RADIUS)
+	panel_style.set_content_margin_all(OUTCOME_PANEL_PADDING)
 	_outcome_panel.add_theme_stylebox_override("panel", panel_style)
 	add_child(_outcome_panel)
 
@@ -211,7 +226,7 @@ func _build_outcome_panel(text_on_top: bool) -> void:
 	_outcome_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_outcome_label.add_theme_font_override("normal_font", GameState.STORY_FONT)
 	_outcome_label.add_theme_font_size_override("normal_font_size", OUTCOME_FONT_SIZE)
-	_outcome_label.add_theme_color_override("default_color", Color(0.98, 0.93, 0.85))
+	_outcome_label.add_theme_color_override("default_color", OUTCOME_TEXT_COLOR)
 	_outcome_panel.add_child(_outcome_label)
 
 
@@ -241,7 +256,7 @@ func show_dialogue_node(node_key: String) -> void:
 	else:
 		GameState.dialogue_progress.erase(GameState.selected_character_id)
 		GameState.finish_conversation("converted" if node_data.get("converted", false) else "spared")
-	if _show_full_scene(node_data.get("scene", ""), node_data.get("text", ""), node_data.get("scene_back", ""), node_data.get("converted", false)):
+	if _show_full_scene(node_data):
 		return
 	_showing_scene = false
 	_show_line(true)
@@ -433,20 +448,25 @@ func _select_choice(index: int) -> void:
 		show_dialogue_node(next_key)
 
 
-## Replaces the whole screen with a single illustration; returns true if shown.
-func _show_full_scene(scene_path: String, outcome_text: String, back_path: String = "", happy: bool = false) -> bool:
+## Replaces the whole screen with the node's `scene` illustration; returns true if shown.
+func _show_full_scene(node_data: Dictionary) -> bool:
+	var scene_path: String = node_data.get("scene", "")
 	if scene_path.is_empty() or not ResourceLoader.exists(scene_path):
 		return false
 	_current_choices = []
-	_outcome_key = outcome_text
+	_outcome_key = node_data.get("text", "")
 	_showing_scene = true
-	_play_scene_change(scene_path, outcome_text, back_path, happy)
+	_play_scene_change(node_data)
 	return true
 
 
 ## Swaps to the outcome illustration through a wash of colour: warm light and sparkles when
 ## the conversion succeeded, a slow fade through darkness when it did not.
-func _play_scene_change(scene_path: String, outcome_text: String, back_path: String, happy: bool) -> void:
+func _play_scene_change(node_data: Dictionary) -> void:
+	var scene_path: String = node_data["scene"]
+	var outcome_text: String = node_data.get("text", "")
+	var back_path: String = node_data.get("scene_back", "")
+	var happy: bool = node_data.get("converted", false)
 	var glow := ColorRect.new()
 	glow.color = GLOW_COLOR if happy else GLOOM_COLOR
 	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -465,7 +485,6 @@ func _play_scene_change(scene_path: String, outcome_text: String, back_path: Str
 	else:
 		_background.texture = load(scene_path) as Texture2D
 		_scene_overlay.visible = false
-	StatsHud.set_forced_hidden(true)
 	for layer in _start_layers:
 		layer.visible = false
 	_background.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -488,14 +507,14 @@ func _play_scene_change(scene_path: String, outcome_text: String, back_path: Str
 
 func _add_sparkles() -> void:
 	var sparkles := CPUParticles2D.new()
-	sparkles.position = Vector2(640, 760)
+	sparkles.position = SPARKLE_ORIGIN
 	sparkles.emitting = true
 	sparkles.one_shot = true
 	sparkles.explosiveness = 0.2
 	sparkles.amount = 70
-	sparkles.lifetime = 2.2
+	sparkles.lifetime = SPARKLE_LIFETIME
 	sparkles.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-	sparkles.emission_rect_extents = Vector2(660, 10)
+	sparkles.emission_rect_extents = SPARKLE_SPREAD_EXTENTS
 	sparkles.direction = Vector2.UP
 	sparkles.spread = 25.0
 	sparkles.gravity = Vector2.ZERO
@@ -504,8 +523,8 @@ func _add_sparkles() -> void:
 	sparkles.scale_amount_min = 2.0
 	sparkles.scale_amount_max = 5.0
 	var fade := Gradient.new()
-	fade.colors = PackedColorArray([Color(1, 0.95, 0.75, 0.0), Color(1, 0.95, 0.75, 1.0), Color(1, 0.85, 0.95, 0.0)])
-	fade.offsets = PackedFloat32Array([0.0, 0.25, 1.0])
+	fade.colors = SPARKLE_COLORS
+	fade.offsets = SPARKLE_OFFSETS
 	sparkles.color_ramp = fade
 	add_child(sparkles)
 	get_tree().create_timer(sparkles.lifetime + 0.5).timeout.connect(sparkles.queue_free)
@@ -517,7 +536,6 @@ func _on_background_input(event: InputEvent) -> void:
 
 
 func _leave_conversation() -> void:
-	StatsHud.set_forced_hidden(false)
 	SceneTransition.change_scene(GameState.MAP_SCENE)
 
 
@@ -526,11 +544,11 @@ func _style_choice_button(btn: Button) -> void:
 	for state in CHOICE_ALPHA:
 		var box := StyleBoxFlat.new()
 		box.bg_color = Color(1, 1, 1, CHOICE_ALPHA[state])
-		box.set_corner_radius_all(10)
-		box.content_margin_left = 12.0
-		box.content_margin_right = 12.0
-		box.content_margin_top = 5.0
-		box.content_margin_bottom = 5.0
+		box.set_corner_radius_all(CHOICE_CORNER_RADIUS)
+		box.content_margin_left = CHOICE_PADDING.x
+		box.content_margin_right = CHOICE_PADDING.x
+		box.content_margin_top = CHOICE_PADDING.y
+		box.content_margin_bottom = CHOICE_PADDING.y
 		btn.add_theme_stylebox_override(state, box)
 	for color_name in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 		btn.add_theme_color_override(color_name, CLOUD_TEXT_COLOR)

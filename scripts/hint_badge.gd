@@ -13,6 +13,15 @@ const ICON_SIZE: float = 72.0
 const MARGIN: float = 16.0
 const TIP_GAP: float = 10.0
 const TIP_TEXT_COLOR: Color = Color(0.2, 0.05, 0.18)
+const TIP_BACKGROUND: Color = Color(1, 1, 1, 0.55)
+const TIP_RADIUS: int = 12
+const TIP_PADDING: int = 10
+const TIP_FONT_SIZE: int = 15
+const TIP_SHOW_SCALE: float = 0.6  # the tooltip grows from this to full size
+const TIP_HIDE_SCALE: float = 0.8
+const TIP_FADE_IN: float = 0.25
+const TIP_POP_SECONDS: float = 0.4
+const TIP_FADE_OUT: float = 0.2
 
 ## Whether the starred icon can be clicked (only when there is a quest to open).
 var clickable: bool = true
@@ -51,13 +60,13 @@ func _ready() -> void:
 	_tip.grow_vertical = Control.GROW_DIRECTION_BOTH
 	_tip.pivot_offset_ratio = Vector2(0.0, 0.5)
 	var box := StyleBoxFlat.new()
-	box.bg_color = Color(1, 1, 1, 0.55)
-	box.set_corner_radius_all(12)
-	box.set_content_margin_all(10)
+	box.bg_color = TIP_BACKGROUND
+	box.set_corner_radius_all(TIP_RADIUS)
+	box.set_content_margin_all(TIP_PADDING)
 	_tip.add_theme_stylebox_override("panel", box)
 	_tip_label = Label.new()
 	_tip_label.add_theme_font_override("font", GameState.DIALOGUE_FONT)
-	_tip_label.add_theme_font_size_override("font_size", 15)
+	_tip_label.add_theme_font_size_override("font_size", TIP_FONT_SIZE)
 	_tip_label.add_theme_color_override("font_color", TIP_TEXT_COLOR)
 	_tip.add_child(_tip_label)
 	add_child(_tip)
@@ -112,13 +121,13 @@ func _apply_language() -> void:
 func _show_tip() -> void:
 	_tip.size = Vector2.ZERO
 	_tip.modulate.a = 0.0
-	_tip.scale = Vector2(0.6, 0.6)
+	_tip.scale = Vector2.ONE * TIP_SHOW_SCALE
 	_tip.visible = true
 	if _tip_tween:
 		_tip_tween.kill()
 	_tip_tween = create_tween().set_parallel(true)
-	_tip_tween.tween_property(_tip, "modulate:a", 1.0, 0.25)
-	_tip_tween.tween_property(_tip, "scale", Vector2.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_tip_tween.tween_property(_tip, "modulate:a", 1.0, TIP_FADE_IN)
+	_tip_tween.tween_property(_tip, "scale", Vector2.ONE, TIP_POP_SECONDS).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _hide_tip() -> void:
@@ -127,6 +136,6 @@ func _hide_tip() -> void:
 	if not _tip.visible:
 		return
 	_tip_tween = create_tween().set_parallel(true)
-	_tip_tween.tween_property(_tip, "modulate:a", 0.0, 0.2)
-	_tip_tween.tween_property(_tip, "scale", Vector2(0.8, 0.8), 0.2)
+	_tip_tween.tween_property(_tip, "modulate:a", 0.0, TIP_FADE_OUT)
+	_tip_tween.tween_property(_tip, "scale", Vector2.ONE * TIP_HIDE_SCALE, TIP_FADE_OUT)
 	_tip_tween.chain().tween_callback(func() -> void: _tip.visible = false)

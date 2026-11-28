@@ -4,6 +4,7 @@ const LINE_COUNT: int = 5  # keys monologue.line-1 .. monologue.line-N
 
 const TYPE_SPEED: float = 0.03   # seconds per character
 const DRIFT_SECONDS: float = 1.2
+const DRIFT_TEXTURE: Texture2D = preload("res://assets/characters/unicorn/unicorn_hair.png")
 const FADE_SHADER: Shader = preload("res://shaders/hair_fade.gdshader")
 const LINE_FADE_IN: float = 0.25  # seconds for a line bubble to appear
 const AGE_RATING: String = "16+"  # the same in every language
@@ -61,7 +62,7 @@ func _place_hair_panel() -> void:
 func _drift_unicorn_in() -> void:
 	var view_w: float = get_viewport_rect().size.x
 	var drifter := TextureRect.new()
-	drifter.texture = load("res://assets/characters/unicorn/unicorn_hair.png") as Texture2D
+	drifter.texture = DRIFT_TEXTURE
 	drifter.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	drifter.stretch_mode = TextureRect.STRETCH_SCALE
 	drifter.mouse_filter = Control.MOUSE_FILTER_IGNORE
